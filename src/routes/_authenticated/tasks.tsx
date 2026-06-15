@@ -42,8 +42,9 @@ function TasksPage() {
     queryFn: async () => (await supabase.from("profiles").select("id, full_name, email")).data ?? [],
   });
 
-  let visible = tasks;
-  if (!isManager && profile?.id) visible = tasks.filter((t: any) => t.assignee_id === profile.id);
+  // Hide completed (approved) tasks — they stay saved in the database but disappear from the list
+  let visible = tasks.filter((t: any) => t.status !== "approved");
+  if (!isManager && profile?.id) visible = visible.filter((t: any) => t.assignee_id === profile.id);
   if (isManager) {
     if (filterDept !== "all") visible = visible.filter((t: any) => t.department === filterDept);
     if (filterPerson !== "all") visible = visible.filter((t: any) => t.assignee_id === filterPerson);
