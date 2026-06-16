@@ -25,11 +25,15 @@ function ProjectsPage() {
 
   const { data: projects = [] } = useQuery({
     queryKey: ["projects"],
-    queryFn: async () => (await supabase.from("projects").select("*, profiles:assignee_id(full_name)").order("created_at", { ascending: false })).data ?? [],
+    queryFn: async () => (await supabase.from("projects").select("*, profiles:assignee_id(full_name), quarterly_milestones:milestone_id(id, title, quarter, annual_goals:goal_id(id, title))").order("created_at", { ascending: false })).data ?? [],
   });
   const { data: team = [] } = useQuery({
     queryKey: ["team"],
     queryFn: async () => (await supabase.from("profiles").select("id, full_name, email")).data ?? [],
+  });
+  const { data: milestones = [] } = useQuery({
+    queryKey: ["milestones-select"],
+    queryFn: async () => (await supabase.from("quarterly_milestones").select("id, title, quarter, annual_goals:goal_id(title)").order("quarter")).data ?? [],
   });
 
   async function updateStatus(id: string, status: string) {
