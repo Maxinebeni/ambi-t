@@ -84,6 +84,45 @@ function Dashboard() {
         <StatCard label="Overdue" value={overdue.length} icon={AlertTriangle} tone="warn" />
       </div>
 
+      {isManager && plans.length > 0 && (() => {
+        const plan = plans[0];
+        const planGoals = goals.filter((g: any) => g.plan_id === plan.id);
+        const planMils = milestones.filter((m: any) => planGoals.some((g: any) => g.id === m.goal_id));
+        const onTrack = planGoals.filter((g: any) => g.status === "on_track" || g.status === "complete").length;
+        return (
+          <div className="bg-card border rounded-xl p-5">
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <h2 className="font-semibold flex items-center gap-2"><Target size={18} className="text-primary" /> Strategy — {plan.title}</h2>
+              <Link to="/strategy" className="text-sm text-primary inline-flex items-center gap-1 hover:underline">Open <ArrowRight size={14} /></Link>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">{onTrack} of {planGoals.length} annual goals on track.</p>
+            <div className="space-y-3">
+              {planGoals.slice(0, 5).map((g: any) => {
+                const mils = planMils.filter((m: any) => m.goal_id === g.id);
+                const done = mils.filter((m: any) => m.completed || m.status === "complete").length;
+                const pct = mils.length ? Math.round((done / mils.length) * 100) : 0;
+                return (
+                  <div key={g.id}>
+                    <div className="flex items-center justify-between text-sm mb-1 gap-2">
+                      <span className="truncate font-medium">{g.title}</span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <GoalStatusBadge status={g.status} />
+                        <span className="text-xs text-muted-foreground">{done}/{mils.length}</span>
+                      </div>
+                    </div>
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <div className="h-full bg-[color:var(--success)]" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+              {planGoals.length === 0 && <p className="text-sm text-muted-foreground">No goals yet — add some in Strategy.</p>}
+            </div>
+          </div>
+        );
+      })()}
+
+
       {isManager && (
         <div className="bg-card border rounded-xl p-5">
           <h2 className="font-semibold mb-4">Weekly task completion by department</h2>
