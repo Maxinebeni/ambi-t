@@ -25,11 +25,15 @@ function ProjectsPage() {
 
   const { data: projects = [] } = useQuery({
     queryKey: ["projects"],
-    queryFn: async () => (await supabase.from("projects").select("*, profiles:assignee_id(full_name)").order("created_at", { ascending: false })).data ?? [],
+    queryFn: async () => (await supabase.from("projects").select("*, profiles:assignee_id(full_name), quarterly_milestones:milestone_id(id, title, quarter, annual_goals:goal_id(id, title))").order("created_at", { ascending: false })).data ?? [],
   });
   const { data: team = [] } = useQuery({
     queryKey: ["team"],
     queryFn: async () => (await supabase.from("profiles").select("id, full_name, email")).data ?? [],
+  });
+  const { data: milestones = [] } = useQuery({
+    queryKey: ["milestones-select"],
+    queryFn: async () => (await supabase.from("quarterly_milestones").select("id, title, quarter, annual_goals:goal_id(title)").order("quarter")).data ?? [],
   });
 
   async function updateStatus(id: string, status: string) {
@@ -52,7 +56,7 @@ function ProjectsPage() {
           <h1 className="text-2xl md:text-3xl font-semibold">Projects</h1>
           <p className="text-muted-foreground mt-1">{isManager ? "Track and assign work across the company." : "Projects you can see and update."}</p>
         </div>
-        {isManager && <NewProjectDialog team={team} onCreated={() => qc.invalidateQueries({ queryKey: ["projects"] })} />}
+        {isManager && <NewProjectDialog team={team} milestones={milestones} onCreated={() => qc.invalidateQueries({ queryKey: ["projects"] })} />}
       </div>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -63,6 +67,12 @@ function ProjectsPage() {
               <StatusBadge status={p.status} kind="project" />
             </div>
             {p.description && <p className="text-sm text-muted-foreground line-clamp-3">{p.description}</p>}
+            {p.quarterly_milestones && (
+              <div className="text-xs bg-primary/5 border border-primary/20 rounded-md px-2 py-1.5 text-primary">
+                <span className="font-medium">{p.quarterly_milestones.quarter}</span> · {p.quarterly_milestones.title}
+                {p.quarterly_milestones.annual_goals && <div className="text-muted-foreground mt-0.5 truncate">↑ {p.quarterly_milestones.annual_goals.title}</div>}
+              </div>
+            )}
             <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
               <DeptBadge dept={p.department} />
               {p.profiles?.full_name && <span>· {p.profiles.full_name}</span>}
@@ -89,13 +99,14 @@ function ProjectsPage() {
   );
 }
 
-function NewProjectDialog({ team, onCreated }: { team: any[]; onCreated: () => void }) {
+function NewProjectDialog({ team, milestones, onCreated }: { team: any[]; milestones: any[]; onCreated: () => void }) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [department, setDepartment] = useState<string>("");
   const [assigneeId, setAssigneeId] = useState<string>("");
   const [dueDate, setDueDate] = useState("");
+  const [milestoneId, setMilestoneId] = useState<string>("");
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -106,11 +117,12 @@ function NewProjectDialog({ team, onCreated }: { team: any[]; onCreated: () => v
       department: (department || null) as any,
       assignee_id: assigneeId || null,
       due_date: dueDate || null,
+      milestone_id: milestoneId || null,
       created_by: user.user.id,
     });
     if (error) { toast.error(error.message); return; }
     toast.success("Project created");
-    setOpen(false); setTitle(""); setDescription(""); setDepartment(""); setAssigneeId(""); setDueDate("");
+    setOpen(false); setTitle(""); setDescription(""); setDepartment(""); setAssigneeId(""); setDueDate(""); setMilestoneId("");
     onCreated();
   }
 
@@ -131,6 +143,7 @@ function NewProjectDialog({ team, onCreated }: { team: any[]; onCreated: () => v
                   <SelectItem value="Finance">Finance</SelectItem>
                   <SelectItem value="Operations">Operations</SelectItem>
                   <SelectItem value="Marketing">Marketing</SelectItem>
+                  <SelectItem value="IT">IT</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -143,6 +156,20 @@ function NewProjectDialog({ team, onCreated }: { team: any[]; onCreated: () => v
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Quarterly milestone (optional)</Label>
+            <Select value={milestoneId} onValueChange={setMilestoneId}>
+              <SelectTrigger><SelectValue placeholder="None — not linked to strategy" /></SelectTrigger>
+              <SelectContent>
+                {milestones.length === 0 && <div className="px-2 py-1.5 text-xs text-muted-foreground">No milestones — create one in Strategy</div>}
+                {milestones.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.quarter} · {m.title}{m.annual_goals?.title ? ` (${m.annual_goals.title})` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2"><Label>Due date</Label><Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} /></div>
           <Button type="submit" className="w-full" size="lg">Create project</Button>

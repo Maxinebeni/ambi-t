@@ -1,9 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/lib/auth";
-import { StatusBadge, DeptBadge } from "@/components/StatusBadge";
-import { FolderKanban, ListChecks, CheckCircle2, AlertTriangle } from "lucide-react";
+import { StatusBadge, DeptBadge, GoalStatusBadge } from "@/components/StatusBadge";
+import { FolderKanban, ListChecks, CheckCircle2, AlertTriangle, Target, ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Ambi-Tech" }] }),
@@ -37,6 +37,21 @@ function Dashboard() {
     queryKey: ["tasks-all"],
     queryFn: async () => (await supabase.from("tasks").select("*, profiles:assignee_id(full_name)").order("due_date", { ascending: true })).data ?? [],
   });
+  const { data: plans = [] } = useQuery({
+    queryKey: ["annual_plans"],
+    queryFn: async () => (await supabase.from("annual_plans").select("*").order("year", { ascending: false })).data ?? [],
+    enabled: isManager,
+  });
+  const { data: goals = [] } = useQuery({
+    queryKey: ["annual_goals"],
+    queryFn: async () => (await supabase.from("annual_goals").select("*")).data ?? [],
+    enabled: isManager,
+  });
+  const { data: milestones = [] } = useQuery({
+    queryKey: ["quarterly_milestones"],
+    queryFn: async () => (await supabase.from("quarterly_milestones").select("*")).data ?? [],
+    enabled: isManager,
+  });
 
   if (!projects || !tasks) return <div className="text-muted-foreground">Loading…</div>;
 
@@ -68,6 +83,45 @@ function Dashboard() {
         {isManager && <StatCard label="Pending approvals" value={pendingApproval.length} icon={CheckCircle2} />}
         <StatCard label="Overdue" value={overdue.length} icon={AlertTriangle} tone="warn" />
       </div>
+
+      {isManager && plans.length > 0 && (() => {
+        const plan = plans[0];
+        const planGoals = goals.filter((g: any) => g.plan_id === plan.id);
+        const planMils = milestones.filter((m: any) => planGoals.some((g: any) => g.id === m.goal_id));
+        const onTrack = planGoals.filter((g: any) => g.status === "on_track" || g.status === "complete").length;
+        return (
+          <div className="bg-card border rounded-xl p-5">
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <h2 className="font-semibold flex items-center gap-2"><Target size={18} className="text-primary" /> Strategy — {plan.title}</h2>
+              <Link to="/strategy" className="text-sm text-primary inline-flex items-center gap-1 hover:underline">Open <ArrowRight size={14} /></Link>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">{onTrack} of {planGoals.length} annual goals on track.</p>
+            <div className="space-y-3">
+              {planGoals.slice(0, 5).map((g: any) => {
+                const mils = planMils.filter((m: any) => m.goal_id === g.id);
+                const done = mils.filter((m: any) => m.completed || m.status === "complete").length;
+                const pct = mils.length ? Math.round((done / mils.length) * 100) : 0;
+                return (
+                  <div key={g.id}>
+                    <div className="flex items-center justify-between text-sm mb-1 gap-2">
+                      <span className="truncate font-medium">{g.title}</span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <GoalStatusBadge status={g.status} />
+                        <span className="text-xs text-muted-foreground">{done}/{mils.length}</span>
+                      </div>
+                    </div>
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <div className="h-full bg-[color:var(--success)]" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+              {planGoals.length === 0 && <p className="text-sm text-muted-foreground">No goals yet — add some in Strategy.</p>}
+            </div>
+          </div>
+        );
+      })()}
+
 
       {isManager && (
         <div className="bg-card border rounded-xl p-5">

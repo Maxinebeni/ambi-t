@@ -1,7 +1,7 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { Logo } from "./Logo";
 import { useAuth, useProfile } from "@/lib/auth";
-import { LayoutDashboard, FolderKanban, ListChecks, CalendarDays, FileUp, CheckCircle2, Users, LogOut, Menu } from "lucide-react";
+import { LayoutDashboard, FolderKanban, ListChecks, CalendarDays, FileUp, CheckCircle2, Users, LogOut, Menu, Target } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,7 @@ interface NavItem { to: string; label: string; icon: typeof LayoutDashboard; man
 
 const NAV: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/strategy", label: "Strategy", icon: Target, managerOnly: true },
   { to: "/projects", label: "Projects", icon: FolderKanban },
   { to: "/tasks", label: "My Week", icon: ListChecks },
   { to: "/calendar", label: "Calendar", icon: CalendarDays },

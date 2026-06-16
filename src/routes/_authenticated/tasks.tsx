@@ -35,7 +35,7 @@ function TasksPage() {
 
   const { data: tasks = [] } = useQuery({
     queryKey: ["weekly-tasks", weekStart],
-    queryFn: async () => (await supabase.from("tasks").select("*, profiles:assignee_id(full_name, email)").eq("week_start", weekStart).order("due_date", { ascending: true })).data ?? [],
+    queryFn: async () => (await supabase.from("tasks").select("*, profiles:assignee_id(full_name, email), projects:project_id(id, title, quarterly_milestones:milestone_id(title, quarter, annual_goals:goal_id(title)))").eq("week_start", weekStart).order("due_date", { ascending: true })).data ?? [],
   });
   const { data: team = [] } = useQuery({
     queryKey: ["team"],
@@ -91,15 +91,25 @@ function TasksPage() {
 
 function TaskRow({ task, canEdit, onChange }: { task: any; canEdit: boolean; onChange: () => void }) {
   const [open, setOpen] = useState(false);
+  const project = task.projects;
+  const milestone = project?.quarterly_milestones;
+  const goal = milestone?.annual_goals;
   return (
     <div className="bg-card border rounded-xl p-4 flex items-center justify-between gap-3 flex-wrap">
       <div className="min-w-0 flex-1">
         <div className="font-medium">{task.title}</div>
-        <div className="text-xs text-muted-foreground flex gap-2 mt-1 items-center">
+        <div className="text-xs text-muted-foreground flex gap-2 mt-1 items-center flex-wrap">
           <DeptBadge dept={task.department} />
           {task.profiles?.full_name && <span>· {task.profiles.full_name}</span>}
           {task.due_date && <span>· Due {task.due_date}</span>}
         </div>
+        {project && (
+          <div className="text-xs mt-2 px-2 py-1 rounded bg-primary/5 border border-primary/15 text-primary inline-flex items-center gap-1 max-w-full">
+            <span className="font-medium">{project.title}</span>
+            {milestone && <span className="text-muted-foreground truncate">· {milestone.quarter} {milestone.title}</span>}
+            {goal && <span className="text-muted-foreground truncate">· ↑ {goal.title}</span>}
+          </div>
+        )}
       </div>
       <div className="flex items-center gap-2">
         <StatusBadge status={task.status} />
@@ -184,6 +194,13 @@ function NewTaskDialog({ team, onCreated }: { team: any[]; onCreated: () => void
   const [department, setDepartment] = useState("");
   const [assigneeId, setAssigneeId] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [projectId, setProjectId] = useState("");
+
+  const { data: projects = [] } = useQuery({
+    queryKey: ["projects-for-task"],
+    queryFn: async () => (await supabase.from("projects").select("id, title, quarterly_milestones:milestone_id(title, quarter)").order("created_at", { ascending: false })).data ?? [],
+    enabled: open,
+  });
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -194,12 +211,13 @@ function NewTaskDialog({ team, onCreated }: { team: any[]; onCreated: () => void
       department: (department || null) as any,
       assignee_id: assigneeId || null,
       due_date: dueDate || null,
+      project_id: projectId || null,
       week_start: getWeekStart(),
       created_by: user.user.id,
     });
     if (error) { toast.error(error.message); return; }
     toast.success("Task created");
-    setOpen(false); setTitle(""); setDescription(""); setDepartment(""); setAssigneeId(""); setDueDate("");
+    setOpen(false); setTitle(""); setDescription(""); setDepartment(""); setAssigneeId(""); setDueDate(""); setProjectId("");
     onCreated();
   }
 
@@ -220,6 +238,7 @@ function NewTaskDialog({ team, onCreated }: { team: any[]; onCreated: () => void
                   <SelectItem value="Finance">Finance</SelectItem>
                   <SelectItem value="Operations">Operations</SelectItem>
                   <SelectItem value="Marketing">Marketing</SelectItem>
+                  <SelectItem value="IT">IT</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -232,6 +251,19 @@ function NewTaskDialog({ team, onCreated }: { team: any[]; onCreated: () => void
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Project (optional)</Label>
+            <Select value={projectId} onValueChange={setProjectId}>
+              <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
+              <SelectContent>
+                {projects.map((p: any) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.title}{p.quarterly_milestones ? ` · ${p.quarterly_milestones.quarter}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2"><Label>Due date</Label><Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} /></div>
           <Button type="submit" size="lg" className="w-full">Create task</Button>
