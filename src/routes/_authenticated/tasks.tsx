@@ -194,6 +194,13 @@ function NewTaskDialog({ team, onCreated }: { team: any[]; onCreated: () => void
   const [department, setDepartment] = useState("");
   const [assigneeId, setAssigneeId] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [projectId, setProjectId] = useState("");
+
+  const { data: projects = [] } = useQuery({
+    queryKey: ["projects-for-task"],
+    queryFn: async () => (await supabase.from("projects").select("id, title, quarterly_milestones:milestone_id(title, quarter)").order("created_at", { ascending: false })).data ?? [],
+    enabled: open,
+  });
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -204,12 +211,13 @@ function NewTaskDialog({ team, onCreated }: { team: any[]; onCreated: () => void
       department: (department || null) as any,
       assignee_id: assigneeId || null,
       due_date: dueDate || null,
+      project_id: projectId || null,
       week_start: getWeekStart(),
       created_by: user.user.id,
     });
     if (error) { toast.error(error.message); return; }
     toast.success("Task created");
-    setOpen(false); setTitle(""); setDescription(""); setDepartment(""); setAssigneeId(""); setDueDate("");
+    setOpen(false); setTitle(""); setDescription(""); setDepartment(""); setAssigneeId(""); setDueDate(""); setProjectId("");
     onCreated();
   }
 
@@ -230,6 +238,7 @@ function NewTaskDialog({ team, onCreated }: { team: any[]; onCreated: () => void
                   <SelectItem value="Finance">Finance</SelectItem>
                   <SelectItem value="Operations">Operations</SelectItem>
                   <SelectItem value="Marketing">Marketing</SelectItem>
+                  <SelectItem value="IT">IT</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -242,6 +251,19 @@ function NewTaskDialog({ team, onCreated }: { team: any[]; onCreated: () => void
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Project (optional)</Label>
+            <Select value={projectId} onValueChange={setProjectId}>
+              <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
+              <SelectContent>
+                {projects.map((p: any) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.title}{p.quarterly_milestones ? ` · ${p.quarterly_milestones.quarter}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2"><Label>Due date</Label><Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} /></div>
           <Button type="submit" size="lg" className="w-full">Create task</Button>
