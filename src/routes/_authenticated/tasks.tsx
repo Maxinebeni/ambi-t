@@ -91,15 +91,25 @@ function TasksPage() {
 
 function TaskRow({ task, canEdit, onChange }: { task: any; canEdit: boolean; onChange: () => void }) {
   const [open, setOpen] = useState(false);
+  const project = task.projects;
+  const milestone = project?.quarterly_milestones;
+  const goal = milestone?.annual_goals;
   return (
     <div className="bg-card border rounded-xl p-4 flex items-center justify-between gap-3 flex-wrap">
       <div className="min-w-0 flex-1">
         <div className="font-medium">{task.title}</div>
-        <div className="text-xs text-muted-foreground flex gap-2 mt-1 items-center">
+        <div className="text-xs text-muted-foreground flex gap-2 mt-1 items-center flex-wrap">
           <DeptBadge dept={task.department} />
           {task.profiles?.full_name && <span>· {task.profiles.full_name}</span>}
           {task.due_date && <span>· Due {task.due_date}</span>}
         </div>
+        {project && (
+          <div className="text-xs mt-2 px-2 py-1 rounded bg-primary/5 border border-primary/15 text-primary inline-flex items-center gap-1 max-w-full">
+            <span className="font-medium">{project.title}</span>
+            {milestone && <span className="text-muted-foreground truncate">· {milestone.quarter} {milestone.title}</span>}
+            {goal && <span className="text-muted-foreground truncate">· ↑ {goal.title}</span>}
+          </div>
+        )}
       </div>
       <div className="flex items-center gap-2">
         <StatusBadge status={task.status} />
