@@ -117,11 +117,12 @@ function NewProjectDialog({ team, milestones, onCreated }: { team: any[]; milest
       department: (department || null) as any,
       assignee_id: assigneeId || null,
       due_date: dueDate || null,
+      milestone_id: milestoneId || null,
       created_by: user.user.id,
     });
     if (error) { toast.error(error.message); return; }
     toast.success("Project created");
-    setOpen(false); setTitle(""); setDescription(""); setDepartment(""); setAssigneeId(""); setDueDate("");
+    setOpen(false); setTitle(""); setDescription(""); setDepartment(""); setAssigneeId(""); setDueDate(""); setMilestoneId("");
     onCreated();
   }
 
@@ -142,6 +143,7 @@ function NewProjectDialog({ team, milestones, onCreated }: { team: any[]; milest
                   <SelectItem value="Finance">Finance</SelectItem>
                   <SelectItem value="Operations">Operations</SelectItem>
                   <SelectItem value="Marketing">Marketing</SelectItem>
+                  <SelectItem value="IT">IT</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -154,6 +156,20 @@ function NewProjectDialog({ team, milestones, onCreated }: { team: any[]; milest
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Quarterly milestone (optional)</Label>
+            <Select value={milestoneId} onValueChange={setMilestoneId}>
+              <SelectTrigger><SelectValue placeholder="None — not linked to strategy" /></SelectTrigger>
+              <SelectContent>
+                {milestones.length === 0 && <div className="px-2 py-1.5 text-xs text-muted-foreground">No milestones — create one in Strategy</div>}
+                {milestones.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.quarter} · {m.title}{m.annual_goals?.title ? ` (${m.annual_goals.title})` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2"><Label>Due date</Label><Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} /></div>
           <Button type="submit" className="w-full" size="lg">Create project</Button>
