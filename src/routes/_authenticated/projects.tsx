@@ -56,7 +56,7 @@ function ProjectsPage() {
           <h1 className="text-2xl md:text-3xl font-semibold">Projects</h1>
           <p className="text-muted-foreground mt-1">{isManager ? "Track and assign work across the company." : "Projects you can see and update."}</p>
         </div>
-        {isManager && <NewProjectDialog team={team} onCreated={() => qc.invalidateQueries({ queryKey: ["projects"] })} />}
+        {isManager && <NewProjectDialog team={team} milestones={milestones} onCreated={() => qc.invalidateQueries({ queryKey: ["projects"] })} />}
       </div>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -67,6 +67,12 @@ function ProjectsPage() {
               <StatusBadge status={p.status} kind="project" />
             </div>
             {p.description && <p className="text-sm text-muted-foreground line-clamp-3">{p.description}</p>}
+            {p.quarterly_milestones && (
+              <div className="text-xs bg-primary/5 border border-primary/20 rounded-md px-2 py-1.5 text-primary">
+                <span className="font-medium">{p.quarterly_milestones.quarter}</span> · {p.quarterly_milestones.title}
+                {p.quarterly_milestones.annual_goals && <div className="text-muted-foreground mt-0.5 truncate">↑ {p.quarterly_milestones.annual_goals.title}</div>}
+              </div>
+            )}
             <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
               <DeptBadge dept={p.department} />
               {p.profiles?.full_name && <span>· {p.profiles.full_name}</span>}
@@ -93,13 +99,14 @@ function ProjectsPage() {
   );
 }
 
-function NewProjectDialog({ team, onCreated }: { team: any[]; onCreated: () => void }) {
+function NewProjectDialog({ team, milestones, onCreated }: { team: any[]; milestones: any[]; onCreated: () => void }) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [department, setDepartment] = useState<string>("");
   const [assigneeId, setAssigneeId] = useState<string>("");
   const [dueDate, setDueDate] = useState("");
+  const [milestoneId, setMilestoneId] = useState<string>("");
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
