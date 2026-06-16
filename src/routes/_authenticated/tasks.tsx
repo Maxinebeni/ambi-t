@@ -35,7 +35,7 @@ function TasksPage() {
 
   const { data: tasks = [] } = useQuery({
     queryKey: ["weekly-tasks", weekStart],
-    queryFn: async () => (await supabase.from("tasks").select("*, profiles:assignee_id(full_name, email)").eq("week_start", weekStart).order("due_date", { ascending: true })).data ?? [],
+    queryFn: async () => (await supabase.from("tasks").select("*, profiles:assignee_id(full_name, email), projects:project_id(id, title, quarterly_milestones:milestone_id(title, quarter, annual_goals:goal_id(title)))").eq("week_start", weekStart).order("due_date", { ascending: true })).data ?? [],
   });
   const { data: team = [] } = useQuery({
     queryKey: ["team"],
