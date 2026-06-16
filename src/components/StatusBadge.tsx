@@ -35,6 +35,27 @@ export function DeptBadge({ dept }: { dept: string | null | undefined }) {
     Finance: "bg-blue-100 text-blue-800",
     Operations: "bg-amber-100 text-amber-800",
     Marketing: "bg-purple-100 text-purple-800",
+    IT: "bg-slate-200 text-slate-800",
   };
-  return <span className={cn("inline-flex px-2 py-0.5 rounded text-xs font-medium", colors[dept])}>{dept}</span>;
+  return <span className={cn("inline-flex px-2 py-0.5 rounded text-xs font-medium", colors[dept] || "bg-muted text-muted-foreground")}>{dept}</span>;
+}
+
+const GOAL_STYLES: Record<string, string> = {
+  on_track: "bg-success/20 text-[color:var(--success-foreground)]",
+  at_risk: "bg-warning/20 text-warning-foreground",
+  behind: "bg-destructive/15 text-destructive",
+  complete: "bg-primary/10 text-primary",
+};
+const GOAL_LABELS: Record<string, string> = {
+  on_track: "On Track",
+  at_risk: "At Risk",
+  behind: "Behind",
+  complete: "Complete",
+};
+export function GoalStatusBadge({ status }: { status: string }) {
+  return (
+    <span className={cn("inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium", GOAL_STYLES[status] || "bg-muted text-muted-foreground")}>
+      {GOAL_LABELS[status] || status}
+    </span>
+  );
 }
