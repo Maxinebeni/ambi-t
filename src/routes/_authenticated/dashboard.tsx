@@ -1,9 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/lib/auth";
-import { StatusBadge, DeptBadge } from "@/components/StatusBadge";
-import { FolderKanban, ListChecks, CheckCircle2, AlertTriangle } from "lucide-react";
+import { StatusBadge, DeptBadge, GoalStatusBadge } from "@/components/StatusBadge";
+import { FolderKanban, ListChecks, CheckCircle2, AlertTriangle, Target, ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Ambi-Tech" }] }),
