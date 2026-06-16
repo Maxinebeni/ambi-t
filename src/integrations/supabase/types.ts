@@ -14,6 +14,83 @@ export type Database = {
   }
   public: {
     Tables: {
+      annual_goals: {
+        Row: {
+          created_at: string
+          created_by: string
+          department: Database["public"]["Enums"]["department"] | null
+          description: string | null
+          id: string
+          owner_id: string | null
+          plan_id: string
+          status: Database["public"]["Enums"]["goal_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          department?: Database["public"]["Enums"]["department"] | null
+          description?: string | null
+          id?: string
+          owner_id?: string | null
+          plan_id: string
+          status?: Database["public"]["Enums"]["goal_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          department?: Database["public"]["Enums"]["department"] | null
+          description?: string | null
+          id?: string
+          owner_id?: string | null
+          plan_id?: string
+          status?: Database["public"]["Enums"]["goal_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "annual_goals_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "annual_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      annual_plans: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          notes: string | null
+          title: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          notes?: string | null
+          title: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          notes?: string | null
+          title?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -47,6 +124,7 @@ export type Database = {
           description: string | null
           due_date: string | null
           id: string
+          milestone_id: string | null
           status: Database["public"]["Enums"]["project_status"]
           title: string
           updated_at: string
@@ -59,6 +137,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          milestone_id?: string | null
           status?: Database["public"]["Enums"]["project_status"]
           title: string
           updated_at?: string
@@ -71,11 +150,76 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          milestone_id?: string | null
           status?: Database["public"]["Enums"]["project_status"]
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "projects_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "quarterly_milestones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quarterly_milestones: {
+        Row: {
+          completed: boolean
+          created_at: string
+          created_by: string
+          department: Database["public"]["Enums"]["department"] | null
+          description: string | null
+          due_date: string | null
+          goal_id: string
+          id: string
+          owner_id: string | null
+          quarter: Database["public"]["Enums"]["quarter"]
+          status: Database["public"]["Enums"]["goal_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          created_by: string
+          department?: Database["public"]["Enums"]["department"] | null
+          description?: string | null
+          due_date?: string | null
+          goal_id: string
+          id?: string
+          owner_id?: string | null
+          quarter: Database["public"]["Enums"]["quarter"]
+          status?: Database["public"]["Enums"]["goal_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          created_by?: string
+          department?: Database["public"]["Enums"]["department"] | null
+          description?: string | null
+          due_date?: string | null
+          goal_id?: string
+          id?: string
+          owner_id?: string | null
+          quarter?: Database["public"]["Enums"]["quarter"]
+          status?: Database["public"]["Enums"]["goal_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quarterly_milestones_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "annual_goals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tasks: {
         Row: {
@@ -181,8 +325,10 @@ export type Database = {
     }
     Enums: {
       app_role: "manager" | "team_member"
-      department: "Finance" | "Operations" | "Marketing"
+      department: "Finance" | "Operations" | "Marketing" | "IT"
+      goal_status: "on_track" | "at_risk" | "behind" | "complete"
       project_status: "not_started" | "in_progress" | "complete"
+      quarter: "Q1" | "Q2" | "Q3" | "Q4"
       task_status: "pending" | "in_progress" | "submitted" | "approved"
     }
     CompositeTypes: {
@@ -312,8 +458,10 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["manager", "team_member"],
-      department: ["Finance", "Operations", "Marketing"],
+      department: ["Finance", "Operations", "Marketing", "IT"],
+      goal_status: ["on_track", "at_risk", "behind", "complete"],
       project_status: ["not_started", "in_progress", "complete"],
+      quarter: ["Q1", "Q2", "Q3", "Q4"],
       task_status: ["pending", "in_progress", "submitted", "approved"],
     },
   },
