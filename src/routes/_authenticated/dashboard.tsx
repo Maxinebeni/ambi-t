@@ -37,6 +37,21 @@ function Dashboard() {
     queryKey: ["tasks-all"],
     queryFn: async () => (await supabase.from("tasks").select("*, profiles:assignee_id(full_name)").order("due_date", { ascending: true })).data ?? [],
   });
+  const { data: plans = [] } = useQuery({
+    queryKey: ["annual_plans"],
+    queryFn: async () => (await supabase.from("annual_plans").select("*").order("year", { ascending: false })).data ?? [],
+    enabled: isManager,
+  });
+  const { data: goals = [] } = useQuery({
+    queryKey: ["annual_goals"],
+    queryFn: async () => (await supabase.from("annual_goals").select("*")).data ?? [],
+    enabled: isManager,
+  });
+  const { data: milestones = [] } = useQuery({
+    queryKey: ["quarterly_milestones"],
+    queryFn: async () => (await supabase.from("quarterly_milestones").select("*")).data ?? [],
+    enabled: isManager,
+  });
 
   if (!projects || !tasks) return <div className="text-muted-foreground">Loading…</div>;
 
