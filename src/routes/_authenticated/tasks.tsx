@@ -31,11 +31,12 @@ function TasksPage() {
   const isManager = !!profile?.isManager;
   const [filterDept, setFilterDept] = useState<string>("all");
   const [filterPerson, setFilterPerson] = useState<string>("all");
+  const [scope, setScope] = useState<"all" | "week">("all");
   const weekStart = getWeekStart();
 
   const { data: tasks = [] } = useQuery({
-    queryKey: ["weekly-tasks", weekStart],
-    queryFn: async () => (await supabase.from("tasks").select("*, profiles:assignee_id(full_name, email), projects:project_id(id, title, quarterly_milestones:milestone_id(title, quarter, annual_goals:goal_id(title)))").eq("week_start", weekStart).order("due_date", { ascending: true })).data ?? [],
+    queryKey: ["weekly-tasks", "all-open"],
+    queryFn: async () => (await supabase.from("tasks").select("*, profiles:assignee_id(full_name, email), projects:project_id(id, title, quarterly_milestones:milestone_id(title, quarter, annual_goals:goal_id(title)))").order("due_date", { ascending: true, nullsFirst: false })).data ?? [],
   });
   const { data: team = [] } = useQuery({
     queryKey: ["team"],
@@ -44,6 +45,7 @@ function TasksPage() {
 
   // Hide completed (approved) tasks — they stay saved in the database but disappear from the list
   let visible = tasks.filter((t: any) => t.status !== "approved");
+  if (scope === "week") visible = visible.filter((t: any) => t.week_start === weekStart);
   if (!isManager && profile?.id) visible = visible.filter((t: any) => t.assignee_id === profile.id);
   if (isManager) {
     if (filterDept !== "all") visible = visible.filter((t: any) => t.department === filterDept);
@@ -54,8 +56,8 @@ function TasksPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl md:text-3xl font-semibold">{isManager ? "All tasks this week" : "My week"}</h1>
-          <p className="text-muted-foreground mt-1">Week of {weekStart}</p>
+          <h1 className="text-2xl md:text-3xl font-semibold">{isManager ? "Tasks" : "My tasks"}</h1>
+          <p className="text-muted-foreground mt-1">{scope === "week" ? `Week of ${weekStart}` : "All open tasks"}</p>
         </div>
         {isManager && <NewTaskDialog team={team} onCreated={() => qc.invalidateQueries({ queryKey: ["weekly-tasks"] })} />}
       </div>
