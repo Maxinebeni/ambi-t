@@ -94,9 +94,24 @@ function TasksPage() {
         )}
       </div>
 
-      <div className="space-y-3">
-        {visible.map((t: any) => <TaskRow key={t.id} task={t} assignee={team.find((m: any) => m.id === t.assignee_id)} canEdit={isManager || t.assignee_id === profile?.id} onChange={() => qc.invalidateQueries({ queryKey: ["weekly-tasks"] })} />)}
-        {visible.length === 0 && <p className="text-muted-foreground">No open tasks yet.</p>}
+      <div className="bg-card border rounded-xl overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Task</TableHead>
+              <TableHead className="w-32">Due date</TableHead>
+              <TableHead className="w-32">Department</TableHead>
+              <TableHead className="w-28">Status</TableHead>
+              <TableHead className="w-32 text-right">Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {visible.map((t: any) => <TaskRow key={t.id} task={t} assignee={team.find((m: any) => m.id === t.assignee_id)} canEdit={isManager || t.assignee_id === profile?.id} onChange={() => qc.invalidateQueries({ queryKey: ["weekly-tasks"] })} />)}
+            {visible.length === 0 && (
+              <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No open tasks yet.</TableCell></TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );
@@ -105,39 +120,29 @@ function TasksPage() {
 function TaskRow({ task, assignee, canEdit, onChange }: { task: any; assignee?: any; canEdit: boolean; onChange: () => void }) {
   const [open, setOpen] = useState(false);
   const project = task.projects;
-  const milestone = project?.quarterly_milestones;
-  const goal = milestone?.annual_goals;
   return (
-    <div className="bg-card border rounded-xl p-4 flex items-center justify-between gap-3 flex-wrap">
-      <div className="min-w-0 flex-1">
+    <TableRow>
+      <TableCell>
         <div className="font-medium">{task.title}</div>
-        <div className="text-xs text-muted-foreground flex gap-2 mt-1 items-center flex-wrap">
-          <DeptBadge dept={task.department} />
-          {assignee && <span>· {assignee.full_name || assignee.email}</span>}
-          {task.due_date && <span>· Due {task.due_date}</span>}
+        <div className="text-xs text-muted-foreground mt-0.5 flex flex-wrap gap-x-2">
+          {assignee && <span>{assignee.full_name || assignee.email}</span>}
+          {project && <span>· {project.title}</span>}
         </div>
-        {project && (
-          <div className="text-xs mt-2 px-2 py-1 rounded bg-primary/5 border border-primary/15 text-primary inline-flex items-center gap-1 max-w-full">
-            <span className="font-medium">{project.title}</span>
-            {milestone && <span className="text-muted-foreground truncate">· {milestone.quarter} {milestone.title}</span>}
-            {goal && <span className="text-muted-foreground truncate">· ↑ {goal.title}</span>}
-          </div>
-        )}
-      </div>
-      <div className="flex items-center gap-2">
-        <StatusBadge status={task.status} />
+      </TableCell>
+      <TableCell className="text-sm">{task.due_date ?? <span className="text-muted-foreground">—</span>}</TableCell>
+      <TableCell>{task.department ? <DeptBadge dept={task.department} /> : <span className="text-muted-foreground text-sm">—</span>}</TableCell>
+      <TableCell><StatusBadge status={task.status} /></TableCell>
+      <TableCell className="text-right">
         {canEdit && task.status !== "approved" && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" variant={task.status === "submitted" ? "secondary" : "default"}>
-                {task.status === "submitted" ? "Update" : "Mark done"}
-              </Button>
+              <Button size="sm">Mark done</Button>
             </DialogTrigger>
             <DialogContent><CompletionForm task={task} onDone={() => { setOpen(false); onChange(); }} /></DialogContent>
           </Dialog>
         )}
-      </div>
-    </div>
+      </TableCell>
+    </TableRow>
   );
 }
 
