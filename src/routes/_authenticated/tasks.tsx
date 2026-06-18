@@ -62,8 +62,15 @@ function TasksPage() {
         {isManager && <NewTaskDialog team={team} onCreated={() => qc.invalidateQueries({ queryKey: ["weekly-tasks"] })} />}
       </div>
 
+      <div className="flex gap-3 flex-wrap">
+        <Select value={scope} onValueChange={(v) => setScope(v as any)}>
+          <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All open tasks</SelectItem>
+            <SelectItem value="week">This week only</SelectItem>
+          </SelectContent>
+        </Select>
       {isManager && (
-        <div className="flex gap-3 flex-wrap">
           <Select value={filterDept} onValueChange={setFilterDept}>
             <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
             <SelectContent>
