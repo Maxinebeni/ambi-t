@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatusBadge, DeptBadge } from "@/components/StatusBadge";
 import { Plus, Upload, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -93,9 +94,24 @@ function TasksPage() {
         )}
       </div>
 
-      <div className="space-y-3">
-        {visible.map((t: any) => <TaskRow key={t.id} task={t} assignee={team.find((m: any) => m.id === t.assignee_id)} canEdit={isManager || t.assignee_id === profile?.id} onChange={() => qc.invalidateQueries({ queryKey: ["weekly-tasks"] })} />)}
-        {visible.length === 0 && <p className="text-muted-foreground">No open tasks yet.</p>}
+      <div className="bg-card border rounded-xl overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Task</TableHead>
+              <TableHead className="w-32">Due date</TableHead>
+              <TableHead className="w-32">Department</TableHead>
+              <TableHead className="w-28">Status</TableHead>
+              <TableHead className="w-32 text-right">Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {visible.map((t: any) => <TaskRow key={t.id} task={t} assignee={team.find((m: any) => m.id === t.assignee_id)} canEdit={isManager || t.assignee_id === profile?.id} onChange={() => qc.invalidateQueries({ queryKey: ["weekly-tasks"] })} />)}
+            {visible.length === 0 && (
+              <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No open tasks yet.</TableCell></TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );
@@ -104,39 +120,29 @@ function TasksPage() {
 function TaskRow({ task, assignee, canEdit, onChange }: { task: any; assignee?: any; canEdit: boolean; onChange: () => void }) {
   const [open, setOpen] = useState(false);
   const project = task.projects;
-  const milestone = project?.quarterly_milestones;
-  const goal = milestone?.annual_goals;
   return (
-    <div className="bg-card border rounded-xl p-4 flex items-center justify-between gap-3 flex-wrap">
-      <div className="min-w-0 flex-1">
+    <TableRow>
+      <TableCell>
         <div className="font-medium">{task.title}</div>
-        <div className="text-xs text-muted-foreground flex gap-2 mt-1 items-center flex-wrap">
-          <DeptBadge dept={task.department} />
-          {assignee && <span>· {assignee.full_name || assignee.email}</span>}
-          {task.due_date && <span>· Due {task.due_date}</span>}
+        <div className="text-xs text-muted-foreground mt-0.5 flex flex-wrap gap-x-2">
+          {assignee && <span>{assignee.full_name || assignee.email}</span>}
+          {project && <span>· {project.title}</span>}
         </div>
-        {project && (
-          <div className="text-xs mt-2 px-2 py-1 rounded bg-primary/5 border border-primary/15 text-primary inline-flex items-center gap-1 max-w-full">
-            <span className="font-medium">{project.title}</span>
-            {milestone && <span className="text-muted-foreground truncate">· {milestone.quarter} {milestone.title}</span>}
-            {goal && <span className="text-muted-foreground truncate">· ↑ {goal.title}</span>}
-          </div>
-        )}
-      </div>
-      <div className="flex items-center gap-2">
-        <StatusBadge status={task.status} />
+      </TableCell>
+      <TableCell className="text-sm">{task.due_date ?? <span className="text-muted-foreground">—</span>}</TableCell>
+      <TableCell>{task.department ? <DeptBadge dept={task.department} /> : <span className="text-muted-foreground text-sm">—</span>}</TableCell>
+      <TableCell><StatusBadge status={task.status} /></TableCell>
+      <TableCell className="text-right">
         {canEdit && task.status !== "approved" && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" variant={task.status === "submitted" ? "secondary" : "default"}>
-                {task.status === "submitted" ? "Update" : "Mark done"}
-              </Button>
+              <Button size="sm">Mark done</Button>
             </DialogTrigger>
             <DialogContent><CompletionForm task={task} onDone={() => { setOpen(false); onChange(); }} /></DialogContent>
           </Dialog>
         )}
-      </div>
-    </div>
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -148,7 +154,6 @@ function CompletionForm({ task, onDone }: { task: any; onDone: () => void }) {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!link && !file && !task.proof_file_path) { toast.error("Add a link or upload a file as proof."); return; }
     setSubmitting(true);
     try {
       const { data: user } = await supabase.auth.getUser();
@@ -160,15 +165,18 @@ function CompletionForm({ task, onDone }: { task: any; onDone: () => void }) {
         if (upErr) throw upErr;
         filePath = path;
       }
+      const now = new Date().toISOString();
       const { error } = await supabase.from("tasks").update({
-        status: "submitted",
+        status: "approved",
         proof_url: link || null,
         proof_file_path: filePath,
         proof_notes: notes || null,
-        submitted_at: new Date().toISOString(),
+        submitted_at: task.submitted_at ?? now,
+        approved_at: now,
+        approved_by: user.user.id,
       }).eq("id", task.id);
       if (error) throw error;
-      toast.success("Submitted for approval");
+      toast.success("Task completed");
       onDone();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed");
@@ -177,14 +185,14 @@ function CompletionForm({ task, onDone }: { task: any; onDone: () => void }) {
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      <DialogHeader><DialogTitle>Mark done: {task.title}</DialogTitle></DialogHeader>
-      <p className="text-sm text-muted-foreground">Add proof — a link (social post, doc) or upload a file.</p>
+      <DialogHeader><DialogTitle>Complete: {task.title}</DialogTitle></DialogHeader>
+      <p className="text-sm text-muted-foreground">Optionally attach a link or file. You can also just continue.</p>
       <div className="space-y-2">
-        <Label className="flex items-center gap-2"><LinkIcon size={14}/> Link</Label>
+        <Label className="flex items-center gap-2"><LinkIcon size={14}/> Link (optional)</Label>
         <Input type="url" placeholder="https://..." value={link} onChange={(e) => setLink(e.target.value)} />
       </div>
       <div className="space-y-2">
-        <Label className="flex items-center gap-2"><Upload size={14}/> Or upload file</Label>
+        <Label className="flex items-center gap-2"><Upload size={14}/> Upload file (optional)</Label>
         <Input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
         {task.proof_file_path && !file && <p className="text-xs text-muted-foreground">Current file uploaded.</p>}
       </div>
@@ -193,7 +201,7 @@ function CompletionForm({ task, onDone }: { task: any; onDone: () => void }) {
         <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
       </div>
       <Button type="submit" size="lg" className="w-full" disabled={submitting}>
-        {submitting ? "Submitting…" : "Submit for approval"}
+        {submitting ? "Completing…" : "Complete task"}
       </Button>
     </form>
   );
