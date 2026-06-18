@@ -36,7 +36,7 @@ function TasksPage() {
 
   const { data: tasks = [] } = useQuery({
     queryKey: ["weekly-tasks", "all-open"],
-    queryFn: async () => (await supabase.from("tasks").select("*, profiles:assignee_id(full_name, email), projects:project_id(id, title, quarterly_milestones:milestone_id(title, quarter, annual_goals:goal_id(title)))").order("due_date", { ascending: true, nullsFirst: false })).data ?? [],
+    queryFn: async () => (await supabase.from("tasks").select("*, projects:project_id(id, title, quarterly_milestones:milestone_id(title, quarter, annual_goals:goal_id(title)))").order("due_date", { ascending: true, nullsFirst: false })).data ?? [],
   });
   const { data: team = [] } = useQuery({
     queryKey: ["team"],
@@ -94,14 +94,14 @@ function TasksPage() {
       </div>
 
       <div className="space-y-3">
-        {visible.map((t: any) => <TaskRow key={t.id} task={t} canEdit={isManager || t.assignee_id === profile?.id} onChange={() => qc.invalidateQueries({ queryKey: ["weekly-tasks"] })} />)}
-        {visible.length === 0 && <p className="text-muted-foreground">No tasks for this week yet.</p>}
+        {visible.map((t: any) => <TaskRow key={t.id} task={t} assignee={team.find((m: any) => m.id === t.assignee_id)} canEdit={isManager || t.assignee_id === profile?.id} onChange={() => qc.invalidateQueries({ queryKey: ["weekly-tasks"] })} />)}
+        {visible.length === 0 && <p className="text-muted-foreground">No open tasks yet.</p>}
       </div>
     </div>
   );
 }
 
-function TaskRow({ task, canEdit, onChange }: { task: any; canEdit: boolean; onChange: () => void }) {
+function TaskRow({ task, assignee, canEdit, onChange }: { task: any; assignee?: any; canEdit: boolean; onChange: () => void }) {
   const [open, setOpen] = useState(false);
   const project = task.projects;
   const milestone = project?.quarterly_milestones;
@@ -112,7 +112,7 @@ function TaskRow({ task, canEdit, onChange }: { task: any; canEdit: boolean; onC
         <div className="font-medium">{task.title}</div>
         <div className="text-xs text-muted-foreground flex gap-2 mt-1 items-center flex-wrap">
           <DeptBadge dept={task.department} />
-          {task.profiles?.full_name && <span>· {task.profiles.full_name}</span>}
+          {assignee && <span>· {assignee.full_name || assignee.email}</span>}
           {task.due_date && <span>· Due {task.due_date}</span>}
         </div>
         {project && (

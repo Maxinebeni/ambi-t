@@ -25,7 +25,7 @@ function ProjectsPage() {
 
   const { data: projects = [] } = useQuery({
     queryKey: ["projects"],
-    queryFn: async () => (await supabase.from("projects").select("*, profiles:assignee_id(full_name), quarterly_milestones:milestone_id(id, title, quarter, annual_goals:goal_id(id, title))").order("created_at", { ascending: false })).data ?? [],
+    queryFn: async () => (await supabase.from("projects").select("*, quarterly_milestones:milestone_id(id, title, quarter, annual_goals:goal_id(id, title))").order("created_at", { ascending: false })).data ?? [],
   });
   const { data: team = [] } = useQuery({
     queryKey: ["team"],
@@ -75,7 +75,7 @@ function ProjectsPage() {
             )}
             <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
               <DeptBadge dept={p.department} />
-              {p.profiles?.full_name && <span>· {p.profiles.full_name}</span>}
+              {p.assignee_id && <span>· {team.find((m: any) => m.id === p.assignee_id)?.full_name || "Assigned"}</span>}
               {p.due_date && <span>· Due {p.due_date}</span>}
             </div>
             <div className="flex gap-2 mt-auto pt-2">
