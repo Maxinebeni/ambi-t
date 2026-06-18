@@ -70,25 +70,28 @@ function TasksPage() {
             <SelectItem value="week">This week only</SelectItem>
           </SelectContent>
         </Select>
-      {isManager && (
-          <Select value={filterDept} onValueChange={setFilterDept}>
-            <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All departments</SelectItem>
-              <SelectItem value="Finance">Finance</SelectItem>
-              <SelectItem value="Operations">Operations</SelectItem>
-              <SelectItem value="Marketing">Marketing</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={filterPerson} onValueChange={setFilterPerson}>
-            <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Everyone</SelectItem>
-              {team.map((m: any) => <SelectItem key={m.id} value={m.id}>{m.full_name || m.email}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
+        {isManager && (
+          <>
+            <Select value={filterDept} onValueChange={setFilterDept}>
+              <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All departments</SelectItem>
+                <SelectItem value="Finance">Finance</SelectItem>
+                <SelectItem value="Operations">Operations</SelectItem>
+                <SelectItem value="Marketing">Marketing</SelectItem>
+                <SelectItem value="IT">IT</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filterPerson} onValueChange={setFilterPerson}>
+              <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Everyone</SelectItem>
+                {team.map((m: any) => <SelectItem key={m.id} value={m.id}>{m.full_name || m.email}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </>
+        )}
+      </div>
 
       <div className="space-y-3">
         {visible.map((t: any) => <TaskRow key={t.id} task={t} canEdit={isManager || t.assignee_id === profile?.id} onChange={() => qc.invalidateQueries({ queryKey: ["weekly-tasks"] })} />)}
