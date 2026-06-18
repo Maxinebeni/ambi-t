@@ -154,7 +154,6 @@ function CompletionForm({ task, onDone }: { task: any; onDone: () => void }) {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!link && !file && !task.proof_file_path) { toast.error("Add a link or upload a file as proof."); return; }
     setSubmitting(true);
     try {
       const { data: user } = await supabase.auth.getUser();
@@ -166,15 +165,18 @@ function CompletionForm({ task, onDone }: { task: any; onDone: () => void }) {
         if (upErr) throw upErr;
         filePath = path;
       }
+      const now = new Date().toISOString();
       const { error } = await supabase.from("tasks").update({
-        status: "submitted",
+        status: "approved",
         proof_url: link || null,
         proof_file_path: filePath,
         proof_notes: notes || null,
-        submitted_at: new Date().toISOString(),
+        submitted_at: task.submitted_at ?? now,
+        approved_at: now,
+        approved_by: user.user.id,
       }).eq("id", task.id);
       if (error) throw error;
-      toast.success("Submitted for approval");
+      toast.success("Task completed");
       onDone();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed");
@@ -183,14 +185,14 @@ function CompletionForm({ task, onDone }: { task: any; onDone: () => void }) {
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      <DialogHeader><DialogTitle>Mark done: {task.title}</DialogTitle></DialogHeader>
-      <p className="text-sm text-muted-foreground">Add proof — a link (social post, doc) or upload a file.</p>
+      <DialogHeader><DialogTitle>Complete: {task.title}</DialogTitle></DialogHeader>
+      <p className="text-sm text-muted-foreground">Optionally attach a link or file. You can also just continue.</p>
       <div className="space-y-2">
-        <Label className="flex items-center gap-2"><LinkIcon size={14}/> Link</Label>
+        <Label className="flex items-center gap-2"><LinkIcon size={14}/> Link (optional)</Label>
         <Input type="url" placeholder="https://..." value={link} onChange={(e) => setLink(e.target.value)} />
       </div>
       <div className="space-y-2">
-        <Label className="flex items-center gap-2"><Upload size={14}/> Or upload file</Label>
+        <Label className="flex items-center gap-2"><Upload size={14}/> Upload file (optional)</Label>
         <Input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
         {task.proof_file_path && !file && <p className="text-xs text-muted-foreground">Current file uploaded.</p>}
       </div>
@@ -199,7 +201,7 @@ function CompletionForm({ task, onDone }: { task: any; onDone: () => void }) {
         <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
       </div>
       <Button type="submit" size="lg" className="w-full" disabled={submitting}>
-        {submitting ? "Submitting…" : "Submit for approval"}
+        {submitting ? "Completing…" : "Complete task"}
       </Button>
     </form>
   );
