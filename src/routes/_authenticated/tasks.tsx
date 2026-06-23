@@ -184,7 +184,7 @@ function TaskRow({ task, team, canEdit, onChange }: { task: any; team: any[]; ca
 
   async function updateStatus(newStatus: string) {
     if (newStatus === "approved") { setDoneOpen(true); return; }
-    const { error } = await supabase.from("tasks").update({ status: newStatus }).eq("id", task.id);
+    const { error } = await supabase.from("tasks").update({ status: newStatus as any }).eq("id", task.id);
     if (error) { toast.error(error.message); return; }
     toast.success("Status updated");
     onChange();
