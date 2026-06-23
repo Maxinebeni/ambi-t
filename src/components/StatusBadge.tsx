@@ -8,6 +8,8 @@ const PROJECT_STYLES: Record<string, string> = {
 const TASK_STYLES: Record<string, string> = {
   pending: "bg-muted text-muted-foreground",
   in_progress: "bg-warning/20 text-warning-foreground",
+  paused: "bg-amber-100 text-amber-800",
+  blocked: "bg-destructive/15 text-destructive",
   submitted: "bg-primary/10 text-primary",
   approved: "bg-success/20 text-[color:var(--success-foreground)]",
 };
@@ -15,9 +17,11 @@ const LABELS: Record<string, string> = {
   not_started: "Not started",
   in_progress: "In progress",
   complete: "Complete",
-  pending: "To do",
-  submitted: "Awaiting approval",
-  approved: "Approved",
+  pending: "Not started",
+  paused: "Paused",
+  blocked: "Blocked",
+  submitted: "Pending approval",
+  approved: "Completed",
 };
 
 export function StatusBadge({ status, kind = "task" }: { status: string; kind?: "task" | "project" }) {

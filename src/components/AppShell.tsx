@@ -1,7 +1,7 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { Logo } from "./Logo";
 import { useAuth, useProfile } from "@/lib/auth";
-import { LayoutDashboard, FolderKanban, ListChecks, CalendarDays, FileUp, CheckCircle2, Users, LogOut, Menu, Target } from "lucide-react";
+import { LayoutDashboard, FolderKanban, ListChecks, CalendarDays, CheckCircle2, Users, LogOut, Menu, Target } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -14,7 +14,6 @@ const NAV: NavItem[] = [
   { to: "/projects", label: "Projects", icon: FolderKanban },
   { to: "/tasks", label: "My Week", icon: ListChecks },
   { to: "/calendar", label: "Calendar", icon: CalendarDays },
-  { to: "/action-items", label: "Meeting Notes", icon: FileUp, managerOnly: true },
   { to: "/approvals", label: "Approvals", icon: CheckCircle2, managerOnly: true },
   { to: "/team", label: "Team", icon: Users, managerOnly: true },
 ];

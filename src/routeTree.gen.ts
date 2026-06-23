@@ -20,7 +20,6 @@ import { Route as AuthenticatedProjectsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
 import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated/approvals'
-import { Route as AuthenticatedActionItemsRouteImport } from './routes/_authenticated/action-items'
 
 const SetupRoute = SetupRouteImport.update({
   id: '/setup',
@@ -76,18 +75,11 @@ const AuthenticatedApprovalsRoute = AuthenticatedApprovalsRouteImport.update({
   path: '/approvals',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedActionItemsRoute =
-  AuthenticatedActionItemsRouteImport.update({
-    id: '/action-items',
-    path: '/action-items',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/setup': typeof SetupRoute
-  '/action-items': typeof AuthenticatedActionItemsRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -100,7 +92,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/setup': typeof SetupRoute
-  '/action-items': typeof AuthenticatedActionItemsRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -115,7 +106,6 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/setup': typeof SetupRoute
-  '/_authenticated/action-items': typeof AuthenticatedActionItemsRoute
   '/_authenticated/approvals': typeof AuthenticatedApprovalsRoute
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -130,7 +120,6 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/setup'
-    | '/action-items'
     | '/approvals'
     | '/calendar'
     | '/dashboard'
@@ -143,7 +132,6 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/setup'
-    | '/action-items'
     | '/approvals'
     | '/calendar'
     | '/dashboard'
@@ -157,7 +145,6 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/setup'
-    | '/_authenticated/action-items'
     | '/_authenticated/approvals'
     | '/_authenticated/calendar'
     | '/_authenticated/dashboard'
@@ -253,18 +240,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedApprovalsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/action-items': {
-      id: '/_authenticated/action-items'
-      path: '/action-items'
-      fullPath: '/action-items'
-      preLoaderRoute: typeof AuthenticatedActionItemsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedActionItemsRoute: typeof AuthenticatedActionItemsRoute
   AuthenticatedApprovalsRoute: typeof AuthenticatedApprovalsRoute
   AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -275,7 +254,6 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedActionItemsRoute: AuthenticatedActionItemsRoute,
   AuthenticatedApprovalsRoute: AuthenticatedApprovalsRoute,
   AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
@@ -297,13 +275,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
