@@ -61,8 +61,8 @@ function CalendarPage() {
   });
 
   const byDay: Record<string, { kind: "Task" | "Project"; id: string; title: string; department?: string; status?: string }[]> = {};
-  for (const t of filteredTasks) (byDay[t.due_date] ??= []).push({ kind: "Task", id: t.id, title: t.title, department: t.department, status: t.status });
-  for (const p of filteredProjects) (byDay[p.due_date] ??= []).push({ kind: "Project", id: p.id, title: p.title, department: p.department });
+  for (const t of filteredTasks) (byDay[t.due_date] ??= []).push({ kind: "Task", id: t.id, title: t.title, department: t.department ?? undefined, status: t.status });
+  for (const p of filteredProjects) (byDay[p.due_date] ??= []).push({ kind: "Project", id: p.id, title: p.title, department: p.department ?? undefined });
 
   const grid = buildMonthGrid(cursor);
   const monthLabel = cursor.toLocaleDateString(undefined, { month: "long", year: "numeric" });
