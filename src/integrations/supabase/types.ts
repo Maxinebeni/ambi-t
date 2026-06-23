@@ -226,6 +226,8 @@ export type Database = {
           approved_at: string | null
           approved_by: string | null
           assignee_id: string | null
+          attachment_path: string | null
+          co_assignees: string[]
           created_at: string
           created_by: string
           department: Database["public"]["Enums"]["department"] | null
@@ -246,6 +248,8 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           assignee_id?: string | null
+          attachment_path?: string | null
+          co_assignees?: string[]
           created_at?: string
           created_by: string
           department?: Database["public"]["Enums"]["department"] | null
@@ -266,6 +270,8 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           assignee_id?: string | null
+          attachment_path?: string | null
+          co_assignees?: string[]
           created_at?: string
           created_by?: string
           department?: Database["public"]["Enums"]["department"] | null
@@ -329,7 +335,13 @@ export type Database = {
       goal_status: "on_track" | "at_risk" | "behind" | "complete"
       project_status: "not_started" | "in_progress" | "complete"
       quarter: "Q1" | "Q2" | "Q3" | "Q4"
-      task_status: "pending" | "in_progress" | "submitted" | "approved"
+      task_status:
+        | "pending"
+        | "in_progress"
+        | "submitted"
+        | "approved"
+        | "paused"
+        | "blocked"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -462,7 +474,14 @@ export const Constants = {
       goal_status: ["on_track", "at_risk", "behind", "complete"],
       project_status: ["not_started", "in_progress", "complete"],
       quarter: ["Q1", "Q2", "Q3", "Q4"],
-      task_status: ["pending", "in_progress", "submitted", "approved"],
+      task_status: [
+        "pending",
+        "in_progress",
+        "submitted",
+        "approved",
+        "paused",
+        "blocked",
+      ],
     },
   },
 } as const
