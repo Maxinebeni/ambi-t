@@ -173,9 +173,10 @@ export type Database = {
           department: Database["public"]["Enums"]["department"] | null
           description: string | null
           due_date: string | null
-          goal_id: string
+          goal_id: string | null
           id: string
           owner_id: string | null
+          plan_id: string | null
           quarter: Database["public"]["Enums"]["quarter"]
           status: Database["public"]["Enums"]["goal_status"]
           title: string
@@ -188,9 +189,10 @@ export type Database = {
           department?: Database["public"]["Enums"]["department"] | null
           description?: string | null
           due_date?: string | null
-          goal_id: string
+          goal_id?: string | null
           id?: string
           owner_id?: string | null
+          plan_id?: string | null
           quarter: Database["public"]["Enums"]["quarter"]
           status?: Database["public"]["Enums"]["goal_status"]
           title: string
@@ -203,9 +205,10 @@ export type Database = {
           department?: Database["public"]["Enums"]["department"] | null
           description?: string | null
           due_date?: string | null
-          goal_id?: string
+          goal_id?: string | null
           id?: string
           owner_id?: string | null
+          plan_id?: string | null
           quarter?: Database["public"]["Enums"]["quarter"]
           status?: Database["public"]["Enums"]["goal_status"]
           title?: string
@@ -217,6 +220,13 @@ export type Database = {
             columns: ["goal_id"]
             isOneToOne: false
             referencedRelation: "annual_goals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quarterly_milestones_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "annual_plans"
             referencedColumns: ["id"]
           },
         ]
