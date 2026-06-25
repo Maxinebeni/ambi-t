@@ -52,7 +52,7 @@ function TasksPage() {
       (
         await supabase
           .from("tasks")
-          .select("*, projects:project_id(id, title)")
+          .select("*, projects:project_id(id, title, quarterly_milestones:milestone_id(id, title, quarter, annual_goals:goal_id(id, title)))")
           .order("due_date", { ascending: true, nullsFirst: false })
       ).data ?? [],
   });
@@ -203,7 +203,17 @@ function TaskRow({ task, team, canEdit, onChange }: { task: any; team: any[]; ca
           {task.title}
           {task.attachment_path && <Paperclip size={14} className="text-muted-foreground" />}
         </div>
-        {task.projects?.title && <div className="text-xs text-muted-foreground mt-0.5">{task.projects.title}</div>}
+        {task.projects?.title && (
+          <div className="text-xs text-muted-foreground mt-0.5 flex flex-wrap gap-1 items-center">
+            <span>📁 {task.projects.title}</span>
+            {task.projects.quarterly_milestones && (
+              <span className="text-primary">· {task.projects.quarterly_milestones.quarter} {task.projects.quarterly_milestones.title}</span>
+            )}
+            {task.projects.quarterly_milestones?.annual_goals && (
+              <span>· 🎯 {task.projects.quarterly_milestones.annual_goals.title}</span>
+            )}
+          </div>
+        )}
       </TableCell>
       <TableCell className="text-sm">{task.due_date ?? <span className="text-muted-foreground">—</span>}</TableCell>
       <TableCell>{task.department ? <DeptBadge dept={task.department} /> : <span className="text-muted-foreground text-sm">—</span>}</TableCell>

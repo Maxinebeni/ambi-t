@@ -63,7 +63,13 @@ function StrategyPage() {
   const activePlanId = activePlan?.id;
 
   const planGoals = useMemo(() => goals.filter((g: any) => g.plan_id === activePlanId), [goals, activePlanId]);
-  const planMilestones = useMemo(() => milestones.filter((m: any) => planGoals.some((g: any) => g.id === m.goal_id)), [milestones, planGoals]);
+  const planMilestones = useMemo(
+    () => milestones.filter((m: any) =>
+      m.plan_id === activePlanId ||
+      (m.goal_id && planGoals.some((g: any) => g.id === m.goal_id))
+    ),
+    [milestones, planGoals, activePlanId]
+  );
 
   const [quarter, setQuarter] = useState<string>("Q1");
   const [drillMilestone, setDrillMilestone] = useState<any | null>(null);
@@ -167,7 +173,7 @@ function StrategyPage() {
           <div className="bg-card border rounded-xl p-5">
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
               <h2 className="font-semibold">Quarterly milestones</h2>
-              {isManager && planGoals.length > 0 && <NewMilestoneDialog goals={planGoals} team={team} defaultQuarter={quarter} onCreated={() => invalidate("quarterly_milestones")} />}
+              {isManager && <NewMilestoneDialog planId={activePlan.id} goals={planGoals} team={team} defaultQuarter={quarter} onCreated={() => invalidate("quarterly_milestones")} />}
             </div>
             <Tabs value={quarter} onValueChange={setQuarter}>
               <TabsList>{QUARTERS.map(q => <TabsTrigger key={q} value={q}>{q}</TabsTrigger>)}</TabsList>
@@ -181,7 +187,7 @@ function StrategyPage() {
                           <div className="font-medium truncate">{m.title}</div>
                           <div className="text-xs text-muted-foreground flex flex-wrap gap-2 mt-1 items-center">
                             <DeptBadge dept={m.department} />
-                            {goal && <span>· {goal.title}</span>}
+                            {goal ? <span>· ↑ {goal.title}</span> : <span className="italic">· direct to plan</span>}
                             {m.due_date && <span>· Due {m.due_date}</span>}
                             {m.profiles?.full_name && <span>· {m.profiles.full_name}</span>}
                           </div>
@@ -372,7 +378,7 @@ function NewGoalDialog({ planId, team, onCreated }: { planId: string; team: any[
   );
 }
 
-function NewMilestoneDialog({ goals, team, defaultQuarter, onCreated }: { goals: any[]; team: any[]; defaultQuarter: string; onCreated: () => void }) {
+function NewMilestoneDialog({ planId, goals, team, defaultQuarter, onCreated }: { planId: string; goals: any[]; team: any[]; defaultQuarter: string; onCreated: () => void }) {
   const [open, setOpen] = useState(false);
   const [goalId, setGoalId] = useState("");
   const [quarter, setQuarter] = useState(defaultQuarter);
@@ -386,9 +392,10 @@ function NewMilestoneDialog({ goals, team, defaultQuarter, onCreated }: { goals:
     e.preventDefault();
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) return;
-    if (!goalId) { toast.error("Pick a goal"); return; }
     const { error } = await supabase.from("quarterly_milestones").insert({
-      goal_id: goalId, quarter: quarter as any, title, description: description || null,
+      plan_id: planId,
+      goal_id: goalId || null,
+      quarter: quarter as any, title, description: description || null,
       due_date: dueDate || null, department: (department || null) as any,
       owner_id: ownerId || null, created_by: user.user.id,
     });
@@ -405,10 +412,13 @@ function NewMilestoneDialog({ goals, team, defaultQuarter, onCreated }: { goals:
         <form onSubmit={submit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label>Goal</Label>
-              <Select value={goalId} onValueChange={setGoalId}>
-                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                <SelectContent>{goals.map(g => <SelectItem key={g.id} value={g.id}>{g.title}</SelectItem>)}</SelectContent>
+              <Label>Feeds annual goal (optional)</Label>
+              <Select value={goalId || "none"} onValueChange={(v) => setGoalId(v === "none" ? "" : v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None — standalone</SelectItem>
+                  {goals.map(g => <SelectItem key={g.id} value={g.id}>{g.title}</SelectItem>)}
+                </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">

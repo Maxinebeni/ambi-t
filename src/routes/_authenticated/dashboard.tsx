@@ -87,15 +87,20 @@ function Dashboard() {
       {isManager && plans.length > 0 && (() => {
         const plan = plans[0];
         const planGoals = goals.filter((g: any) => g.plan_id === plan.id);
-        const planMils = milestones.filter((m: any) => planGoals.some((g: any) => g.id === m.goal_id));
+        const planMils = milestones.filter((m: any) =>
+          m.plan_id === plan.id || (m.goal_id && planGoals.some((g: any) => g.id === m.goal_id))
+        );
         const onTrack = planGoals.filter((g: any) => g.status === "on_track" || g.status === "complete").length;
+        const month = new Date().getMonth();
+        const currentQuarter = `Q${Math.floor(month / 3) + 1}`;
+        const thisQuarterMils = planMils.filter((m: any) => m.quarter === currentQuarter);
         return (
-          <div className="bg-card border rounded-xl p-5">
-            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <div className="bg-card border rounded-xl p-5 space-y-5">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <h2 className="font-semibold flex items-center gap-2"><Target size={18} className="text-primary" /> Strategy — {plan.title}</h2>
               <Link to="/strategy" className="text-sm text-primary inline-flex items-center gap-1 hover:underline">Open <ArrowRight size={14} /></Link>
             </div>
-            <p className="text-sm text-muted-foreground mb-4">{onTrack} of {planGoals.length} annual goals on track.</p>
+            <p className="text-sm text-muted-foreground">{onTrack} of {planGoals.length} annual goals on track.</p>
             <div className="space-y-3">
               {planGoals.slice(0, 5).map((g: any) => {
                 const mils = planMils.filter((m: any) => m.goal_id === g.id);
@@ -117,6 +122,28 @@ function Dashboard() {
                 );
               })}
               {planGoals.length === 0 && <p className="text-sm text-muted-foreground">No goals yet — add some in Strategy.</p>}
+            </div>
+
+            <div className="pt-4 border-t">
+              <h3 className="font-medium text-sm mb-3">This quarter ({currentQuarter}) · {thisQuarterMils.length} milestones</h3>
+              <div className="space-y-2">
+                {thisQuarterMils.slice(0, 6).map((m: any) => {
+                  const g = planGoals.find((x: any) => x.id === m.goal_id);
+                  return (
+                    <div key={m.id} className="flex items-center justify-between p-2.5 border rounded-lg bg-background gap-2">
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium truncate">{m.title}</div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {g ? `↑ ${g.title}` : "Standalone milestone"}
+                          {m.due_date && ` · Due ${m.due_date}`}
+                        </div>
+                      </div>
+                      <GoalStatusBadge status={m.completed ? "complete" : m.status} />
+                    </div>
+                  );
+                })}
+                {thisQuarterMils.length === 0 && <p className="text-sm text-muted-foreground">No milestones for {currentQuarter} yet.</p>}
+              </div>
             </div>
           </div>
         );
