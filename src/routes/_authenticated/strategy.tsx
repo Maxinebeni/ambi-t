@@ -378,7 +378,7 @@ function NewGoalDialog({ planId, team, onCreated }: { planId: string; team: any[
   );
 }
 
-function NewMilestoneDialog({ goals, team, defaultQuarter, onCreated }: { goals: any[]; team: any[]; defaultQuarter: string; onCreated: () => void }) {
+function NewMilestoneDialog({ planId, goals, team, defaultQuarter, onCreated }: { planId: string; goals: any[]; team: any[]; defaultQuarter: string; onCreated: () => void }) {
   const [open, setOpen] = useState(false);
   const [goalId, setGoalId] = useState("");
   const [quarter, setQuarter] = useState(defaultQuarter);
@@ -392,9 +392,10 @@ function NewMilestoneDialog({ goals, team, defaultQuarter, onCreated }: { goals:
     e.preventDefault();
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) return;
-    if (!goalId) { toast.error("Pick a goal"); return; }
     const { error } = await supabase.from("quarterly_milestones").insert({
-      goal_id: goalId, quarter: quarter as any, title, description: description || null,
+      plan_id: planId,
+      goal_id: goalId || null,
+      quarter: quarter as any, title, description: description || null,
       due_date: dueDate || null, department: (department || null) as any,
       owner_id: ownerId || null, created_by: user.user.id,
     });
@@ -411,10 +412,13 @@ function NewMilestoneDialog({ goals, team, defaultQuarter, onCreated }: { goals:
         <form onSubmit={submit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label>Goal</Label>
-              <Select value={goalId} onValueChange={setGoalId}>
-                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                <SelectContent>{goals.map(g => <SelectItem key={g.id} value={g.id}>{g.title}</SelectItem>)}</SelectContent>
+              <Label>Feeds annual goal (optional)</Label>
+              <Select value={goalId || "none"} onValueChange={(v) => setGoalId(v === "none" ? "" : v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None — standalone</SelectItem>
+                  {goals.map(g => <SelectItem key={g.id} value={g.id}>{g.title}</SelectItem>)}
+                </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
