@@ -173,7 +173,7 @@ function StrategyPage() {
           <div className="bg-card border rounded-xl p-5">
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
               <h2 className="font-semibold">Quarterly milestones</h2>
-              {isManager && planGoals.length > 0 && <NewMilestoneDialog goals={planGoals} team={team} defaultQuarter={quarter} onCreated={() => invalidate("quarterly_milestones")} />}
+              {isManager && <NewMilestoneDialog planId={activePlan.id} goals={planGoals} team={team} defaultQuarter={quarter} onCreated={() => invalidate("quarterly_milestones")} />}
             </div>
             <Tabs value={quarter} onValueChange={setQuarter}>
               <TabsList>{QUARTERS.map(q => <TabsTrigger key={q} value={q}>{q}</TabsTrigger>)}</TabsList>
