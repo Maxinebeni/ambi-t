@@ -63,7 +63,13 @@ function StrategyPage() {
   const activePlanId = activePlan?.id;
 
   const planGoals = useMemo(() => goals.filter((g: any) => g.plan_id === activePlanId), [goals, activePlanId]);
-  const planMilestones = useMemo(() => milestones.filter((m: any) => planGoals.some((g: any) => g.id === m.goal_id)), [milestones, planGoals]);
+  const planMilestones = useMemo(
+    () => milestones.filter((m: any) =>
+      m.plan_id === activePlanId ||
+      (m.goal_id && planGoals.some((g: any) => g.id === m.goal_id))
+    ),
+    [milestones, planGoals, activePlanId]
+  );
 
   const [quarter, setQuarter] = useState<string>("Q1");
   const [drillMilestone, setDrillMilestone] = useState<any | null>(null);
