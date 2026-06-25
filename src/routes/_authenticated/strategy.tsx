@@ -187,7 +187,7 @@ function StrategyPage() {
                           <div className="font-medium truncate">{m.title}</div>
                           <div className="text-xs text-muted-foreground flex flex-wrap gap-2 mt-1 items-center">
                             <DeptBadge dept={m.department} />
-                            {goal && <span>· {goal.title}</span>}
+                            {goal ? <span>· ↑ {goal.title}</span> : <span className="italic">· direct to plan</span>}
                             {m.due_date && <span>· Due {m.due_date}</span>}
                             {m.profiles?.full_name && <span>· {m.profiles.full_name}</span>}
                           </div>
