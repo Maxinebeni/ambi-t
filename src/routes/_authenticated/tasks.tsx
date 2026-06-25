@@ -52,7 +52,7 @@ function TasksPage() {
       (
         await supabase
           .from("tasks")
-          .select("*, projects:project_id(id, title)")
+          .select("*, projects:project_id(id, title, quarterly_milestones:milestone_id(id, title, quarter, annual_goals:goal_id(id, title)))")
           .order("due_date", { ascending: true, nullsFirst: false })
       ).data ?? [],
   });
