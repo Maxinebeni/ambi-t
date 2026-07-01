@@ -34,6 +34,7 @@ function buildMonthGrid(monthStart: Date): Date[] {
 }
 
 function CalendarPage() {
+  const { data: departments = [] } = useDepartments();
   const { data: profile } = useProfile();
   const isManager = !!profile?.isManager;
   const [cursor, setCursor] = useState(() => startOfMonth(new Date()));
