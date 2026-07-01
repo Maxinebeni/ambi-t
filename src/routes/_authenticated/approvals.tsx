@@ -24,7 +24,11 @@ function ApprovalsPage() {
   const sign = useServerFn(getProofSignedUrl);
   const { data: tasks = [] } = useQuery({
     queryKey: ["approvals"],
-    queryFn: async () => (await supabase.from("tasks").select("*, profiles:assignee_id(full_name, email)").eq("status", "submitted").order("submitted_at", { ascending: false })).data ?? [],
+    queryFn: async () => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return [];
+      return (await supabase.from("tasks").select("*, profiles:assignee_id(full_name, email)").eq("status", "submitted").eq("created_by", user.user.id).order("submitted_at", { ascending: false })).data ?? [];
+    },
   });
 
   async function approve(id: string) {
