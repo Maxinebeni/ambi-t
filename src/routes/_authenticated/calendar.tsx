@@ -82,10 +82,7 @@ function CalendarPage() {
             <SelectContent>
               <SelectItem value="all">All departments</SelectItem>
               <SelectItem value="mine">My tasks</SelectItem>
-              <SelectItem value="Finance">Finance</SelectItem>
-              <SelectItem value="Operations">Operations</SelectItem>
-              <SelectItem value="Marketing">Marketing</SelectItem>
-              <SelectItem value="IT">IT</SelectItem>
+              {departments.map((d) => <SelectItem key={d.name} value={d.name}>{d.name}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
