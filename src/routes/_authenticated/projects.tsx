@@ -101,6 +101,7 @@ function ProjectsPage() {
 }
 
 function NewProjectDialog({ team, milestones, onCreated }: { team: any[]; milestones: any[]; onCreated: () => void }) {
+  const { data: departments = [] } = useDepartments();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
