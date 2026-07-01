@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { StatusBadge, DeptBadge } from "@/components/StatusBadge";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useDepartments } from "@/lib/useDepartments";
 
 export const Route = createFileRoute("/_authenticated/projects")({
   head: () => ({ meta: [{ title: "Projects — Ambi-Tech" }] }),
