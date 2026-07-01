@@ -29,6 +29,8 @@ function TeamPage() {
   const qc = useQueryClient();
   const invite = useServerFn(inviteUser);
   const remove = useServerFn(removeUser);
+  const { data: departments = [] } = useDepartments();
+  const [newDept, setNewDept] = useState("");
 
   const { data: members = [] } = useQuery({
     queryKey: ["team-full"],
