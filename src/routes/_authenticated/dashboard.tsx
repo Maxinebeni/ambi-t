@@ -52,19 +52,24 @@ function Dashboard() {
     queryFn: async () => (await supabase.from("quarterly_milestones").select("*")).data ?? [],
     enabled: isManager,
   });
+  const { data: depts = [] } = useQuery({
+    queryKey: ["departments"],
+    queryFn: async () => (await supabase.from("departments").select("name")).data ?? [],
+    enabled: isManager,
+  });
 
   if (!projects || !tasks) return <div className="text-muted-foreground">Loading…</div>;
 
-  const myTasks = userId ? tasks.filter((t: any) => t.assignee_id === userId) : [];
-  const pendingApproval = tasks.filter((t: any) => t.status === "submitted");
+  const myTasks = userId ? tasks.filter((t: any) => t.assignee_id === userId || (t.co_assignees ?? []).includes(userId)) : [];
+  const pendingApproval = tasks.filter((t: any) => t.status === "submitted" && (!isManager || t.created_by === userId));
   const overdue = tasks.filter((t: any) => t.due_date && t.due_date < today && t.status !== "approved");
   const completedThisWeek = tasks.filter((t: any) => t.status === "approved").length;
 
-  const byDept = ["Finance", "Operations", "Marketing"].map((d) => {
+  const byDept = (depts as any[]).map((d) => d.name).map((d: string) => {
     const dt = tasks.filter((t: any) => t.department === d);
     const done = dt.filter((t: any) => t.status === "approved").length;
     return { dept: d, total: dt.length, done, pct: dt.length ? Math.round((done / dt.length) * 100) : 0 };
-  });
+  }).filter((d) => d.total > 0);
 
   return (
     <div className="space-y-6">
@@ -77,11 +82,9 @@ function Dashboard() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <StatCard label="Active projects" value={projects.filter((p: any) => p.status !== "complete").length} icon={FolderKanban} />
-        <StatCard label={isManager ? "Tasks done (approved)" : "My open tasks"} value={isManager ? completedThisWeek : myTasks.filter((t: any) => t.status !== "approved").length} icon={ListChecks} tone="success" />
-        {isManager && <StatCard label="Pending approvals" value={pendingApproval.length} icon={CheckCircle2} />}
-        <StatCard label="Overdue" value={overdue.length} icon={AlertTriangle} tone="warn" />
+        <StatCard label={isManager ? "Tasks completed" : "My open tasks"} value={isManager ? completedThisWeek : myTasks.filter((t: any) => t.status !== "approved").length} icon={ListChecks} tone="success" />
       </div>
 
       {isManager && plans.length > 0 && (() => {
