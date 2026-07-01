@@ -13,13 +13,13 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DeptBadge, GoalStatusBadge } from "@/components/StatusBadge";
 import { Plus, Trash2, Target, ChevronRight, X } from "lucide-react";
 import { toast } from "sonner";
+import { useDepartments } from "@/lib/useDepartments";
 
 export const Route = createFileRoute("/_authenticated/strategy")({
   head: () => ({ meta: [{ title: "Strategy — Ambi-Tech" }] }),
   component: StrategyPage,
 });
 
-const DEPTS = ["Finance", "Operations", "Marketing", "IT"] as const;
 const QUARTERS = ["Q1", "Q2", "Q3", "Q4"] as const;
 const STATUSES = [
   { v: "on_track", l: "On Track" },
