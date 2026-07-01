@@ -361,7 +361,7 @@ function NewGoalDialog({ planId, team, onCreated }: { planId: string; team: any[
               <Label>Department</Label>
               <Select value={department} onValueChange={setDepartment}>
                 <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                <SelectContent>{DEPTS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                <SelectContent>{DEPTS.map(d => <SelectItem key={d.name} value={d.name}>{d.name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
