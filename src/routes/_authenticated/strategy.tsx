@@ -328,6 +328,7 @@ function NewPlanDialog({ onCreated }: { onCreated: () => void }) {
 }
 
 function NewGoalDialog({ planId, team, onCreated }: { planId: string; team: any[]; onCreated: () => void }) {
+  const { data: DEPTS = [] } = useDepartments();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
