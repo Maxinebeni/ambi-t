@@ -380,6 +380,7 @@ function NewGoalDialog({ planId, team, onCreated }: { planId: string; team: any[
 }
 
 function NewMilestoneDialog({ planId, goals, team, defaultQuarter, onCreated }: { planId: string; goals: any[]; team: any[]; defaultQuarter: string; onCreated: () => void }) {
+  const { data: DEPTS = [] } = useDepartments();
   const [open, setOpen] = useState(false);
   const [goalId, setGoalId] = useState("");
   const [quarter, setQuarter] = useState(defaultQuarter);
