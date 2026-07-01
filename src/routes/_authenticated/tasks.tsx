@@ -363,6 +363,7 @@ function CompletionForm({ task, onDone }: { task: any; onDone: () => void }) {
 }
 
 function NewTaskDialog({ team, onCreated }: { team: any[]; onCreated: () => void }) {
+  const { data: departments = [] } = useDepartments();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
