@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { StatusBadge, DeptBadge } from "@/components/StatusBadge";
 import { Plus, Upload, Link as LinkIcon, Paperclip, UserPlus } from "lucide-react";
 import { toast } from "sonner";
+import { useDepartments } from "@/lib/useDepartments";
 
 export const Route = createFileRoute("/_authenticated/tasks")({
   head: () => ({ meta: [{ title: "My Week — Ambi-Tech" }] }),
