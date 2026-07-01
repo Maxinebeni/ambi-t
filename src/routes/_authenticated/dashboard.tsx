@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/lib/auth";
 import { StatusBadge, DeptBadge, GoalStatusBadge } from "@/components/StatusBadge";
-import { FolderKanban, ListChecks, CheckCircle2, AlertTriangle, Target, ArrowRight } from "lucide-react";
+import { FolderKanban, ListChecks, Target, ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Ambi-Tech" }] }),
