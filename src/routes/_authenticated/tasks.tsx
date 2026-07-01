@@ -429,10 +429,7 @@ function NewTaskDialog({ team, onCreated }: { team: any[]; onCreated: () => void
               <Select value={department} onValueChange={setDepartment}>
                 <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Finance">Finance</SelectItem>
-                  <SelectItem value="Operations">Operations</SelectItem>
-                  <SelectItem value="Marketing">Marketing</SelectItem>
-                  <SelectItem value="IT">IT</SelectItem>
+                  {departments.map((d) => <SelectItem key={d.name} value={d.name}>{d.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
