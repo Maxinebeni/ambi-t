@@ -45,6 +45,7 @@ function TasksPage() {
   const [filterDept, setFilterDept] = useState<string>("all");
   const [filterPerson, setFilterPerson] = useState<string>("all");
   const [scope, setScope] = useState<"all" | "week">("all");
+  const { data: departments = [] } = useDepartments();
   const weekStart = getWeekStart();
 
   const { data: tasks = [] } = useQuery({
