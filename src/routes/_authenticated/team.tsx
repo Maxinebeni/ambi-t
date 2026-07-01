@@ -12,6 +12,7 @@ import { DeptBadge } from "@/components/StatusBadge";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { inviteUser, removeUser } from "@/lib/admin.functions";
+import { useDepartments } from "@/lib/useDepartments";
 
 export const Route = createFileRoute("/_authenticated/team")({
   head: () => ({ meta: [{ title: "Team — Ambi-Tech" }] }),
