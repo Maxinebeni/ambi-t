@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { StatusBadge, DeptBadge } from "@/components/StatusBadge";
 import { Plus, Upload, Link as LinkIcon, Paperclip, UserPlus } from "lucide-react";
 import { toast } from "sonner";
+import { useDepartments } from "@/lib/useDepartments";
 
 export const Route = createFileRoute("/_authenticated/tasks")({
   head: () => ({ meta: [{ title: "My Week — Ambi-Tech" }] }),
@@ -44,6 +45,7 @@ function TasksPage() {
   const [filterDept, setFilterDept] = useState<string>("all");
   const [filterPerson, setFilterPerson] = useState<string>("all");
   const [scope, setScope] = useState<"all" | "week">("all");
+  const { data: departments = [] } = useDepartments();
   const weekStart = getWeekStart();
 
   const { data: tasks = [] } = useQuery({
@@ -102,10 +104,7 @@ function TasksPage() {
               <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All departments</SelectItem>
-                <SelectItem value="Finance">Finance</SelectItem>
-                <SelectItem value="Operations">Operations</SelectItem>
-                <SelectItem value="Marketing">Marketing</SelectItem>
-                <SelectItem value="IT">IT</SelectItem>
+                {departments.map((d) => <SelectItem key={d.name} value={d.name}>{d.name}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={filterPerson} onValueChange={setFilterPerson}>
@@ -177,17 +176,36 @@ function TaskTable({
 }
 
 function TaskRow({ task, team, canEdit, onChange }: { task: any; team: any[]; canEdit: boolean; onChange: () => void }) {
-  const [doneOpen, setDoneOpen] = useState(false);
+  const { data: profile } = useProfile();
+  const [submitOpen, setSubmitOpen] = useState(false);
   const assignee = team.find((m) => m.id === task.assignee_id);
   const co = (task.co_assignees ?? []).map((id: string) => team.find((m) => m.id === id)).filter(Boolean);
   const isCompleted = task.status === "approved";
+  const isSubmitted = task.status === "submitted";
+  const isCreator = !!profile?.id && task.created_by === profile.id;
+  const isAssigned = !!profile?.id && (task.assignee_id === profile.id || (task.co_assignees ?? []).includes(profile.id));
 
   async function updateStatus(newStatus: string) {
-    if (newStatus === "approved") { setDoneOpen(true); return; }
+    if (newStatus === "submitted") { setSubmitOpen(true); return; }
+    if (newStatus === "approved") {
+      // Direct approve — only creator can shortcut
+      if (!isCreator) { toast.error("Only the task creator can mark as complete."); return; }
+      const now = new Date().toISOString();
+      const { error } = await supabase.from("tasks").update({ status: "approved", approved_at: now, approved_by: profile?.id }).eq("id", task.id);
+      if (error) { toast.error(error.message); return; }
+      toast.success("Task completed"); onChange(); return;
+    }
     const { error } = await supabase.from("tasks").update({ status: newStatus as any }).eq("id", task.id);
     if (error) { toast.error(error.message); return; }
     toast.success("Status updated");
     onChange();
+  }
+
+  async function approve() {
+    const now = new Date().toISOString();
+    const { error } = await supabase.from("tasks").update({ status: "approved", approved_at: now, approved_by: profile?.id }).eq("id", task.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Approved"); onChange();
   }
 
   async function setCoAssignees(ids: string[]) {
@@ -252,11 +270,11 @@ function TaskRow({ task, team, canEdit, onChange }: { task: any; team: any[]; ca
         </div>
       </TableCell>
       <TableCell>
-        {canEdit ? (
+        {canEdit && !isSubmitted && !isCompleted ? (
           <Select value={task.status} onValueChange={updateStatus}>
             <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {STATUS_OPTIONS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+              {STATUS_OPTIONS.filter(s => s.value !== "approved").map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
             </SelectContent>
           </Select>
         ) : (
@@ -264,11 +282,22 @@ function TaskRow({ task, team, canEdit, onChange }: { task: any; team: any[]; ca
         )}
       </TableCell>
       <TableCell className="text-right">
-        {canEdit && !isCompleted && (
-          <Dialog open={doneOpen} onOpenChange={setDoneOpen}>
-            <DialogTrigger asChild><Button size="sm">Mark done</Button></DialogTrigger>
-            <DialogContent><CompletionForm task={task} onDone={() => { setDoneOpen(false); onChange(); }} /></DialogContent>
+        {isSubmitted && isCreator && (
+          <Button size="sm" onClick={approve}>Approve</Button>
+        )}
+        {isSubmitted && !isCreator && (
+          <span className="text-xs text-muted-foreground">Awaiting approval</span>
+        )}
+        {!isSubmitted && !isCompleted && isAssigned && (
+          <Dialog open={submitOpen} onOpenChange={setSubmitOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" variant={isCreator ? "outline" : "default"}>Submit for approval</Button>
+            </DialogTrigger>
+            <DialogContent><CompletionForm task={task} onDone={() => { setSubmitOpen(false); onChange(); }} /></DialogContent>
           </Dialog>
+        )}
+        {!isSubmitted && !isCompleted && isCreator && (
+          <Button size="sm" variant="ghost" className="ml-1" onClick={() => updateStatus("approved")}>Mark done</Button>
         )}
       </TableCell>
     </TableRow>
@@ -296,16 +325,14 @@ function CompletionForm({ task, onDone }: { task: any; onDone: () => void }) {
       }
       const now = new Date().toISOString();
       const { error } = await supabase.from("tasks").update({
-        status: "approved",
+        status: "submitted",
         proof_url: link || null,
         proof_file_path: filePath,
         proof_notes: notes || null,
-        submitted_at: task.submitted_at ?? now,
-        approved_at: now,
-        approved_by: user.user.id,
+        submitted_at: now,
       }).eq("id", task.id);
       if (error) throw error;
-      toast.success("Task completed");
+      toast.success("Submitted for approval");
       onDone();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed");
@@ -314,8 +341,8 @@ function CompletionForm({ task, onDone }: { task: any; onDone: () => void }) {
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      <DialogHeader><DialogTitle>Complete: {task.title}</DialogTitle></DialogHeader>
-      <p className="text-sm text-muted-foreground">Optionally attach a link or file. You can also just continue.</p>
+      <DialogHeader><DialogTitle>Submit: {task.title}</DialogTitle></DialogHeader>
+      <p className="text-sm text-muted-foreground">Attach proof of work. Your manager will review and approve.</p>
       <div className="space-y-2">
         <Label className="flex items-center gap-2"><LinkIcon size={14}/> Link (optional)</Label>
         <Input type="url" placeholder="https://..." value={link} onChange={(e) => setLink(e.target.value)} />
@@ -329,13 +356,14 @@ function CompletionForm({ task, onDone }: { task: any; onDone: () => void }) {
         <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
       </div>
       <Button type="submit" size="lg" className="w-full" disabled={submitting}>
-        {submitting ? "Completing…" : "Complete task"}
+        {submitting ? "Submitting…" : "Submit for approval"}
       </Button>
     </form>
   );
 }
 
 function NewTaskDialog({ team, onCreated }: { team: any[]; onCreated: () => void }) {
+  const { data: departments = [] } = useDepartments();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -401,10 +429,7 @@ function NewTaskDialog({ team, onCreated }: { team: any[]; onCreated: () => void
               <Select value={department} onValueChange={setDepartment}>
                 <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Finance">Finance</SelectItem>
-                  <SelectItem value="Operations">Operations</SelectItem>
-                  <SelectItem value="Marketing">Marketing</SelectItem>
-                  <SelectItem value="IT">IT</SelectItem>
+                  {departments.map((d) => <SelectItem key={d.name} value={d.name}>{d.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

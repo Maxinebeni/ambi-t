@@ -13,13 +13,13 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DeptBadge, GoalStatusBadge } from "@/components/StatusBadge";
 import { Plus, Trash2, Target, ChevronRight, X } from "lucide-react";
 import { toast } from "sonner";
+import { useDepartments } from "@/lib/useDepartments";
 
 export const Route = createFileRoute("/_authenticated/strategy")({
   head: () => ({ meta: [{ title: "Strategy — Ambi-Tech" }] }),
   component: StrategyPage,
 });
 
-const DEPTS = ["Finance", "Operations", "Marketing", "IT"] as const;
 const QUARTERS = ["Q1", "Q2", "Q3", "Q4"] as const;
 const STATUSES = [
   { v: "on_track", l: "On Track" },
@@ -328,6 +328,7 @@ function NewPlanDialog({ onCreated }: { onCreated: () => void }) {
 }
 
 function NewGoalDialog({ planId, team, onCreated }: { planId: string; team: any[]; onCreated: () => void }) {
+  const { data: DEPTS = [] } = useDepartments();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -360,7 +361,7 @@ function NewGoalDialog({ planId, team, onCreated }: { planId: string; team: any[
               <Label>Department</Label>
               <Select value={department} onValueChange={setDepartment}>
                 <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                <SelectContent>{DEPTS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                <SelectContent>{DEPTS.map(d => <SelectItem key={d.name} value={d.name}>{d.name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
@@ -379,6 +380,7 @@ function NewGoalDialog({ planId, team, onCreated }: { planId: string; team: any[
 }
 
 function NewMilestoneDialog({ planId, goals, team, defaultQuarter, onCreated }: { planId: string; goals: any[]; team: any[]; defaultQuarter: string; onCreated: () => void }) {
+  const { data: DEPTS = [] } = useDepartments();
   const [open, setOpen] = useState(false);
   const [goalId, setGoalId] = useState("");
   const [quarter, setQuarter] = useState(defaultQuarter);
@@ -437,7 +439,7 @@ function NewMilestoneDialog({ planId, goals, team, defaultQuarter, onCreated }: 
               <Label>Department</Label>
               <Select value={department} onValueChange={setDepartment}>
                 <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                <SelectContent>{DEPTS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                <SelectContent>{DEPTS.map(d => <SelectItem key={d.name} value={d.name}>{d.name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
           </div>

@@ -54,7 +54,7 @@ export const setupStatus = createServerFn({ method: "GET" }).handler(async () =>
 const InviteInput = z.object({
   email: z.string().trim().email().max(255),
   fullName: z.string().trim().min(1).max(120),
-  department: z.enum(["Finance", "Operations", "Marketing"]).optional(),
+  department: z.string().trim().min(1).max(60).optional(),
   role: z.enum(["manager", "team_member"]).default("team_member"),
   tempPassword: z.string().min(8).max(72),
 });

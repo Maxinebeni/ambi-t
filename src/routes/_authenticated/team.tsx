@@ -12,6 +12,7 @@ import { DeptBadge } from "@/components/StatusBadge";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { inviteUser, removeUser } from "@/lib/admin.functions";
+import { useDepartments } from "@/lib/useDepartments";
 
 export const Route = createFileRoute("/_authenticated/team")({
   head: () => ({ meta: [{ title: "Team — Ambi-Tech" }] }),
@@ -28,6 +29,8 @@ function TeamPage() {
   const qc = useQueryClient();
   const invite = useServerFn(inviteUser);
   const remove = useServerFn(removeUser);
+  const { data: departments = [] } = useDepartments();
+  const [newDept, setNewDept] = useState("");
 
   const { data: members = [] } = useQuery({
     queryKey: ["team-full"],
@@ -91,9 +94,7 @@ function TeamPage() {
                   <Select value={form.department} onValueChange={(v) => setForm({ ...form, department: v })}>
                     <SelectTrigger><SelectValue placeholder="—"/></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Finance">Finance</SelectItem>
-                      <SelectItem value="Operations">Operations</SelectItem>
-                      <SelectItem value="Marketing">Marketing</SelectItem>
+                      {departments.map((d) => <SelectItem key={d.name} value={d.name}>{d.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -130,6 +131,45 @@ function TeamPage() {
           </div>
         ))}
         {members.length === 0 && <p className="p-4 text-muted-foreground">No team members yet.</p>}
+      </div>
+
+      <div className="space-y-3">
+        <div>
+          <h2 className="text-lg font-semibold">Departments</h2>
+          <p className="text-sm text-muted-foreground">The four defaults are locked. Add more if your company grows.</p>
+        </div>
+        <div className="bg-card border rounded-xl divide-y">
+          {departments.map((d) => (
+            <div key={d.name} className="p-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <DeptBadge dept={d.name} />
+                {d.is_locked && <span className="text-xs text-muted-foreground">Default</span>}
+              </div>
+              {!d.is_locked && (
+                <Button variant="ghost" size="icon" onClick={async () => {
+                  if (!confirm(`Remove department "${d.name}"?`)) return;
+                  const { error } = await supabase.from("departments").delete().eq("name", d.name);
+                  if (error) { toast.error(error.message); return; }
+                  toast.success("Removed");
+                  qc.invalidateQueries({ queryKey: ["departments"] });
+                }}><Trash2 size={16}/></Button>
+              )}
+            </div>
+          ))}
+        </div>
+        <form className="flex gap-2" onSubmit={async (e) => {
+          e.preventDefault();
+          const name = newDept.trim();
+          if (!name) return;
+          const { error } = await supabase.from("departments").insert({ name });
+          if (error) { toast.error(error.message); return; }
+          setNewDept("");
+          toast.success(`Added ${name}`);
+          qc.invalidateQueries({ queryKey: ["departments"] });
+        }}>
+          <Input placeholder="e.g. Sales" value={newDept} onChange={(e) => setNewDept(e.target.value)} />
+          <Button type="submit"><Plus size={16} className="mr-1"/> Add department</Button>
+        </form>
       </div>
     </div>
   );

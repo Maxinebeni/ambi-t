@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useDepartments } from "@/lib/useDepartments";
 
 export const Route = createFileRoute("/_authenticated/calendar")({
   head: () => ({ meta: [{ title: "Calendar — Ambi-Tech" }] }),
@@ -33,6 +34,7 @@ function buildMonthGrid(monthStart: Date): Date[] {
 }
 
 function CalendarPage() {
+  const { data: departments = [] } = useDepartments();
   const { data: profile } = useProfile();
   const isManager = !!profile?.isManager;
   const [cursor, setCursor] = useState(() => startOfMonth(new Date()));
@@ -81,10 +83,7 @@ function CalendarPage() {
             <SelectContent>
               <SelectItem value="all">All departments</SelectItem>
               <SelectItem value="mine">My tasks</SelectItem>
-              <SelectItem value="Finance">Finance</SelectItem>
-              <SelectItem value="Operations">Operations</SelectItem>
-              <SelectItem value="Marketing">Marketing</SelectItem>
-              <SelectItem value="IT">IT</SelectItem>
+              {departments.map((d) => <SelectItem key={d.name} value={d.name}>{d.name}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>

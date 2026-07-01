@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { StatusBadge, DeptBadge } from "@/components/StatusBadge";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useDepartments } from "@/lib/useDepartments";
 
 export const Route = createFileRoute("/_authenticated/projects")({
   head: () => ({ meta: [{ title: "Projects — Ambi-Tech" }] }),
@@ -100,6 +101,7 @@ function ProjectsPage() {
 }
 
 function NewProjectDialog({ team, milestones, onCreated }: { team: any[]; milestones: any[]; onCreated: () => void }) {
+  const { data: departments = [] } = useDepartments();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -140,10 +142,7 @@ function NewProjectDialog({ team, milestones, onCreated }: { team: any[]; milest
               <Select value={department} onValueChange={setDepartment}>
                 <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Finance">Finance</SelectItem>
-                  <SelectItem value="Operations">Operations</SelectItem>
-                  <SelectItem value="Marketing">Marketing</SelectItem>
-                  <SelectItem value="IT">IT</SelectItem>
+                  {departments.map((d) => <SelectItem key={d.name} value={d.name}>{d.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
