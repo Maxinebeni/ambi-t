@@ -18,7 +18,7 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string
-          department: Database["public"]["Enums"]["department"] | null
+          department: string | null
           description: string | null
           id: string
           owner_id: string | null
@@ -30,7 +30,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by: string
-          department?: Database["public"]["Enums"]["department"] | null
+          department?: string | null
           description?: string | null
           id?: string
           owner_id?: string | null
@@ -42,7 +42,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string
-          department?: Database["public"]["Enums"]["department"] | null
+          department?: string | null
           description?: string | null
           id?: string
           owner_id?: string | null
@@ -91,24 +91,42 @@ export type Database = {
         }
         Relationships: []
       }
+      departments: {
+        Row: {
+          created_at: string
+          is_locked: boolean
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          is_locked?: boolean
+          name: string
+        }
+        Update: {
+          created_at?: string
+          is_locked?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
-          department: Database["public"]["Enums"]["department"] | null
+          department: string | null
           email: string
           full_name: string
           id: string
         }
         Insert: {
           created_at?: string
-          department?: Database["public"]["Enums"]["department"] | null
+          department?: string | null
           email: string
           full_name?: string
           id: string
         }
         Update: {
           created_at?: string
-          department?: Database["public"]["Enums"]["department"] | null
+          department?: string | null
           email?: string
           full_name?: string
           id?: string
@@ -120,7 +138,7 @@ export type Database = {
           assignee_id: string | null
           created_at: string
           created_by: string
-          department: Database["public"]["Enums"]["department"] | null
+          department: string | null
           description: string | null
           due_date: string | null
           id: string
@@ -133,7 +151,7 @@ export type Database = {
           assignee_id?: string | null
           created_at?: string
           created_by: string
-          department?: Database["public"]["Enums"]["department"] | null
+          department?: string | null
           description?: string | null
           due_date?: string | null
           id?: string
@@ -146,7 +164,7 @@ export type Database = {
           assignee_id?: string | null
           created_at?: string
           created_by?: string
-          department?: Database["public"]["Enums"]["department"] | null
+          department?: string | null
           description?: string | null
           due_date?: string | null
           id?: string
@@ -170,7 +188,7 @@ export type Database = {
           completed: boolean
           created_at: string
           created_by: string
-          department: Database["public"]["Enums"]["department"] | null
+          department: string | null
           description: string | null
           due_date: string | null
           goal_id: string | null
@@ -186,7 +204,7 @@ export type Database = {
           completed?: boolean
           created_at?: string
           created_by: string
-          department?: Database["public"]["Enums"]["department"] | null
+          department?: string | null
           description?: string | null
           due_date?: string | null
           goal_id?: string | null
@@ -202,7 +220,7 @@ export type Database = {
           completed?: boolean
           created_at?: string
           created_by?: string
-          department?: Database["public"]["Enums"]["department"] | null
+          department?: string | null
           description?: string | null
           due_date?: string | null
           goal_id?: string | null
@@ -240,7 +258,7 @@ export type Database = {
           co_assignees: string[]
           created_at: string
           created_by: string
-          department: Database["public"]["Enums"]["department"] | null
+          department: string | null
           description: string | null
           due_date: string | null
           id: string
@@ -262,7 +280,7 @@ export type Database = {
           co_assignees?: string[]
           created_at?: string
           created_by: string
-          department?: Database["public"]["Enums"]["department"] | null
+          department?: string | null
           description?: string | null
           due_date?: string | null
           id?: string
@@ -284,7 +302,7 @@ export type Database = {
           co_assignees?: string[]
           created_at?: string
           created_by?: string
-          department?: Database["public"]["Enums"]["department"] | null
+          department?: string | null
           description?: string | null
           due_date?: string | null
           id?: string
@@ -341,7 +359,6 @@ export type Database = {
     }
     Enums: {
       app_role: "manager" | "team_member"
-      department: "Finance" | "Operations" | "Marketing" | "IT"
       goal_status: "on_track" | "at_risk" | "behind" | "complete"
       project_status: "not_started" | "in_progress" | "complete"
       quarter: "Q1" | "Q2" | "Q3" | "Q4"
@@ -480,7 +497,6 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["manager", "team_member"],
-      department: ["Finance", "Operations", "Marketing", "IT"],
       goal_status: ["on_track", "at_risk", "behind", "complete"],
       project_status: ["not_started", "in_progress", "complete"],
       quarter: ["Q1", "Q2", "Q3", "Q4"],
